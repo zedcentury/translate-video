@@ -54,6 +54,20 @@ def ask_path(
         return path
 
 
+def ask_yes_no(question: str, default: bool = True) -> bool:
+    """Ha/yo'q savoli — javobni bool ko'rinishida qaytaradi."""
+    hint = "[Ha/yo'q]" if default else "[ha/Yo'q]"
+    while True:
+        answer = input(f"{question} {hint}: ").strip().lower()
+        if not answer:
+            return default
+        if answer in {"ha", "h", "y", "yes", "ok"}:
+            return True
+        if answer in {"yoq", "yo'q", "n", "no", "q"}:
+            return False
+        print("  Iltimos 'ha' yoki 'yo'q' deb javob bering.")
+
+
 def confirm(question: str) -> None:
     """Foydalanuvchi tasdiqlaguncha so'rayveradi; rad etilsa dastur to'xtaydi."""
     while True:

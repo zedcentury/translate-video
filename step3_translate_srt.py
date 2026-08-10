@@ -31,6 +31,13 @@ Reja:
 
 Hozircha bu bosqich QO'LDA bajariladi: foydalanuvchi tarjimani o'zi tayyorlab,
 tasdiqlaydi va dastur faylning mavjudligini tekshiradi.
+
+PROMPT:
+Yuklangan .srt faylni o'zbek tiliga (lotin) tarjima qil. Timestamp'lar o'zgarmasin, format saqlansin.
+Gap yoki atama ikki blokka bo'linib qolgan joylarda bloklarni birlashtirishga ruxsat —
+birlashgan blok birinchi bo'lakning boshi va oxirgi bo'lakning oxiri vaqtini olsin, keyin qayta raqamla.
+Texnik atamalar asl holida qolsin. Uslub — jonli, o'qituvchi so'zlayotgandek.
+Transkripsiya xatolarini to'g'irlab tarjima qil. Natijani .srt fayl ko'rinishida ber.
 """
 
 from __future__ import annotations
