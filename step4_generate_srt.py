@@ -1,4 +1,4 @@
-"""2-bosqich: audio fayldan .srt (transkripsiya) generatsiya qilish.
+"""4-bosqich: audio fayldan .srt (transkripsiya) generatsiya qilish.
 
 openai-whisper `large-v3` modeli orqali amalga oshiriladi.
 

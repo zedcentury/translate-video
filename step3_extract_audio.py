@@ -1,4 +1,4 @@
-"""1-bosqich: ffmpeg orqali videodan audio qismini ajratib olish."""
+"""3-bosqich: ffmpeg orqali videodan audio qismini ajratib olish."""
 
 from __future__ import annotations
 

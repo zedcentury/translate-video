@@ -1,4 +1,4 @@
-"""5-bosqich: tarjima qilingan .srt dagi har bir matnni audioga o'girish.
+"""7-bosqich: tarjima qilingan .srt dagi har bir matnni audioga o'girish.
 
 Navoiy TTS (CosyVoice2 runtime) orqali amalga oshiriladi. Ya'ni quyidagi
 buyruqning dasturiy ko'rinishi:
@@ -54,8 +54,8 @@ DEFAULT_SEED = int(os.environ.get("NAVOIY_SEED", "1986"))
 SAMPLE_RATE = 24000
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".aac")
 
-# Matnni normalize qilish 4-bosqichga ko'chirildi (step4_normalize_srt.py), shuning
-# uchun bu yerda takroran normalize qilinmaydi — aks holda 4-bosqichda almashtirilgan
+# Matnni normalize qilish 6-bosqichga ko'chirildi (step6_normalize_srt.py), shuning
+# uchun bu yerda takroran normalize qilinmaydi — aks holda 6-bosqichda almashtirilgan
 # atamalar yana o'zgarib ketishi mumkin. Agar bu bosqichga normalize qilinmagan .srt
 # berilsa, True qilib qo'yish kerak.
 NORMALIZE_TEXT = False
@@ -79,7 +79,7 @@ def generate_audios(
     """Normalize qilingan .srt dagi har bir matn uchun alohida audio fayl yaratish.
 
     Args:
-        normalized_srt_path: Normalize qilingan .srt fayl manzili (4-bosqich
+        normalized_srt_path: Normalize qilingan .srt fayl manzili (6-bosqich
             natijasi). Berilmasa, input orqali so'raladi.
         audios_dir: Audiolar saqlanadigan papka manzili. Berilmasa, input orqali
             so'raladi (default qiymat: .srt fayl yonidagi `audios` papkasi).

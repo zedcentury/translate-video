@@ -1,8 +1,8 @@
-"""6-bosqich: videodagi ovozdan shaxs nutqini (vokalni) ajratib olib tashlash.
+"""1-bosqich: videodagi ovozdan shaxs nutqini (vokalni) ajratib olib tashlash.
 
 Demucs (Meta'ning ochiq modeli) orqali amalga oshiriladi. Natijada asl ovozdan
 faqat FON qoladi: musiqa, effektlar, tabiat tovushlari — gapirgan odam ovozi esa
-olib tashlanadi. 7-bosqich shu fon ustiga o'zbekcha audiolarni qo'yadi.
+olib tashlanadi. 2-bosqich shu fonni videoga joylashtiradi.
 
 Qo'lda qilinganda bu shunga teng:
     ffmpeg -i film.mp4 -vn -ar 44100 -ac 2 audio.wav
@@ -29,7 +29,7 @@ from utils import ask_path, ask_yes_no, fail, run_ffmpeg
 
 DEMUCS_MODEL = os.environ.get("DEMUCS_MODEL", "htdemucs")
 
-# Demucs 44.1 kHz stereo audio bilan ishlashga o'rgatilgan — 1-bosqichdagi
+# Demucs 44.1 kHz stereo audio bilan ishlashga o'rgatilgan — 3-bosqichdagi
 # 16 kHz mono fayl (whisper uchun) bu yerga to'g'ri kelmaydi.
 SAMPLE_RATE = 44100
 CHANNELS = 2

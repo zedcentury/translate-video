@@ -1,4 +1,4 @@
-"""3-bosqich: .srt fayldagi matnlarni bir tildan boshqa tilga tarjima qilish.
+"""5-bosqich: .srt fayldagi matnlarni bir tildan boshqa tilga tarjima qilish.
 
 TODO: claude / chatgpt / gemini API'lari orqali amalga oshiriladi.
 

@@ -4,7 +4,7 @@ Audio fayl nomining o'zi uning qaysi vaqtda boshlanishini bildiradi:
     00-01-02-500.wav  ->  00:01:02,500 dan boshlab qo'yiladi.
 
 Videoning ovozi saqlanadi — yangi audiolar uning ustiga qo'shiladi. Bu bosqichga
-7-bosqichdan chiqqan video (ovozi nutqsiz fon audiosiga almashtirilgan) beriladi,
+2-bosqichdan chiqqan video (ovozi nutqsiz fon audiosiga almashtirilgan) beriladi,
 shuning uchun videoning o'z audio oqimining o'zi fon bo'lib xizmat qiladi.
 """
 
@@ -19,7 +19,7 @@ from utils import ask_path, fail, run_ffmpeg
 
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".aac")
 
-# Fon ovozining balandligi (1.0 — o'zgarishsiz). 7-bosqichda nutq allaqachon
+# Fon ovozining balandligi (1.0 — o'zgarishsiz). 1-bosqichda nutq allaqachon
 # olib tashlangani uchun fonni pasaytirish shart emas — faqat musiqa va
 # effektlar qolgan. Musiqa baland tuyulsa, shu qiymatni kamaytiring.
 ORIGINAL_VOLUME = 1.0
@@ -39,7 +39,7 @@ def merge_audios(
     """Audiolarni videoga fayl nomidagi vaqt bo'yicha biriktirish.
 
     Args:
-        video_path: Manba video fayl manzili (7-bosqich natijasi). Berilmasa,
+        video_path: Manba video fayl manzili (2-bosqich natijasi). Berilmasa,
             input orqali so'raladi.
         audios_dir: Audiolar joylashgan papka manzili. Berilmasa, input orqali
             so'raladi (default qiymat: video yonidagi `audios` papkasi).
