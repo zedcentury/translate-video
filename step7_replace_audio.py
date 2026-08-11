@@ -38,7 +38,7 @@ def replace_audio(
         Yaratilgan videoning manzili.
     """
     if video_path is None:
-        video_path = ask_path("Video fayl manzilini kiriting", must_exist=True)
+        video_path = ask_path("Video fayl manzilini kiriting (/path/to/docker/docker.mp4)", must_exist=True)
     video_path = Path(video_path).expanduser().resolve()
     if not video_path.is_file():
         fail(f"Video fayl topilmadi: {video_path}")

@@ -65,7 +65,8 @@ def normalize_srt(
     """
     if srt_path is None:
         srt_path = ask_path(
-            "Tarjima qilingan .srt fayl manzilini kiriting", must_exist=True
+            "Tarjima qilingan .srt fayl manzilini kiriting (/path/to/docker/docker-uz.srt)",
+            must_exist=True,
         )
     srt_path = Path(srt_path).expanduser().resolve()
     if not srt_path.is_file():
@@ -79,7 +80,9 @@ def normalize_srt(
     output_path = Path(output_path).expanduser().resolve()
 
     if replacements_path is None:
-        replacements_path = ask_optional_path("Atamalar JSON fayli manzilini kiriting")
+        replacements_path = ask_optional_path(
+            "Atamalar JSON fayli manzilini kiriting (/path/to/docker/normalize.json)"
+        )
 
     replacements = load_replacements(replacements_path)
     if replacements:

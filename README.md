@@ -54,7 +54,7 @@ Barcha bosqichlarni ketma-ket bajaradi va faqat kerakli joyda savol beradi:
 ```
 
 ```
-Video fayl manzilini kiriting: /path/to/video.mp4
+Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/docker.mp4
 ```
 
 Shundan keyin dastur o'zi ishlaydi. Faqat quyidagi joylarda to'xtaydi:
@@ -66,7 +66,7 @@ Shundan keyin dastur o'zi ishlaydi. Faqat quyidagi joylarda to'xtaydi:
 
 ---
 
-## 3. Bosqichma-bosqich: `/path/to/video.mp4` misolida
+## 3. Bosqichma-bosqich: `/path/to/docker/docker.mp4` misolida
 
 Quyida har bir faylni alohida ishga tushirish tartibi. Barcha savollarda kvadrat qavs ichidagi
 qiymat — default; **Enter** bosish kifoya.
@@ -78,11 +78,11 @@ qiymat — default; **Enter** bosish kifoya.
 ```
 
 ```
-Video fayl manzilini kiriting: /path/to/video.mp4
-Audio fayl qayerga saqlansin [/path/to/video.wav]: ⏎
+Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/docker.mp4
+Audio fayl qayerga saqlansin [/path/to/docker/docker.wav]: ⏎
 ```
 
-**Natija:** `/path/to/video.wav` (16 kHz mono — whisper uchun optimal)
+**Natija:** `/path/to/docker/docker.wav` (16 kHz mono — whisper uchun optimal)
 
 ---
 
@@ -93,12 +93,12 @@ Audio fayl qayerga saqlansin [/path/to/video.wav]: ⏎
 ```
 
 ```
-Audio fayl manzilini kiriting: /path/to/video.wav
-Transkripsiya .srt fayli qayerga saqlansin [/path/to/video.srt]: ⏎
+Audio fayl manzilini kiriting (/path/to/docker/docker.wav): /path/to/docker/docker.wav
+Transkripsiya .srt fayli qayerga saqlansin [/path/to/docker/docker.srt]: ⏎
 Audiodagi nutq tili (auto — o'zi aniqlaydi) [en]: ⏎
 ```
 
-**Natija:** `/path/to/video.srt`
+**Natija:** `/path/to/docker/docker.srt`
 
 Til savolida Enter bosilsa `en` olinadi. Boshqa til uchun `ru`, `uz` kabi kod kiriting;
 `auto` deb yozsangiz, whisper tilni o'zi aniqlaydi.
@@ -119,13 +119,13 @@ WHISPER_MODEL=large-v3-turbo .venv/bin/python step2_generate_srt.py
 ```
 
 ```
-Tarjima qilinadigan .srt fayl manzilini kiriting: /path/to/video.srt
-Tarjima qilingan .srt fayl qayerga saqlansin [/path/to/video-uz.srt]: ⏎
-  Tarjima hozircha qo'lda bajariladi. video-uz.srt tayyormi? [ha/yo'q]:
+Tarjima qilinadigan .srt fayl manzilini kiriting: /path/to/docker/docker.srt
+Tarjima qilingan .srt fayl qayerga saqlansin [/path/to/docker/docker-uz.srt]: ⏎
+  Tarjima hozircha qo'lda bajariladi. docker-uz.srt tayyormi? [ha/yo'q]:
 ```
 
-Bu paytda `/path/to/video.srt` faylini Claude / ChatGPT / Gemini ga yuklab, quyidagi prompt bilan
-tarjima qildiring, natijani `/path/to/video-uz.srt` nomi bilan saqlang, so'ng `ha` deb javob bering:
+Bu paytda `/path/to/docker/docker.srt` faylini Claude / ChatGPT / Gemini ga yuklab, quyidagi prompt bilan
+tarjima qildiring, natijani `/path/to/docker/docker-uz.srt` nomi bilan saqlang, so'ng `ha` deb javob bering:
 
 > Yuklangan .srt faylni o'zbek tiliga (lotin) tarjima qil. Timestamp'lar o'zgarmasin, format
 > saqlansin. Gap yoki atama ikki blokka bo'linib qolgan joylarda bloklarni birlashtirishga ruxsat —
@@ -133,7 +133,7 @@ tarjima qildiring, natijani `/path/to/video-uz.srt` nomi bilan saqlang, so'ng `h
 > raqamla. Texnik atamalar asl holida qolsin. Uslub — jonli, o'qituvchi so'zlayotgandek.
 > Transkripsiya xatolarini to'g'irlab tarjima qil. Natijani .srt fayl ko'rinishida ber.
 
-**Natija:** `/path/to/video-uz.srt`
+**Natija:** `/path/to/docker/docker-uz.srt`
 
 ---
 
@@ -144,12 +144,12 @@ tarjima qildiring, natijani `/path/to/video-uz.srt` nomi bilan saqlang, so'ng `h
 ```
 
 ```
-Tarjima qilingan .srt fayl manzilini kiriting: /path/to/video-uz.srt
-Normalize qilingan .srt qayerga saqlansin [/path/to/video-uz-normalized.srt]: ⏎
-Atamalar JSON fayli manzilini kiriting (o'tkazib yuborish uchun Enter): /path/to/terms.json
+Tarjima qilingan .srt fayl manzilini kiriting (/path/to/docker/docker-uz.srt): /path/to/docker/docker-uz.srt
+Normalize qilingan .srt qayerga saqlansin [/path/to/docker/docker-uz-normalized.srt]: ⏎
+Atamalar JSON fayli manzilini kiriting (/path/to/docker/normalize.json) (o'tkazib yuborish uchun Enter): /path/to/docker/normalize.json
 ```
 
-**Natija:** `/path/to/video-uz-normalized.srt`
+**Natija:** `/path/to/docker/docker-uz-normalized.srt`
 
 Bu bosqich ikki ishni bajaradi:
 
@@ -175,7 +175,7 @@ noto'g'ri talaffuz qiladi. Ro'yxat JSON faylda beriladi:
 Namuna sifatida `terms.example.json` fayli bor — uni nusxalab, o'zingizga moslang:
 
 ```bash
-cp terms.example.json /path/to/terms.json
+cp terms.example.json /path/to/docker/normalize.json
 ```
 
 Almashtirish katta-kichik harfga qaramaydi va faqat **butun so'zlarga** qo'llaniladi —
@@ -192,11 +192,11 @@ Atamalar kerak bo'lmasa, savolda shunchaki **Enter** bosing — faqat normalize 
 ```
 
 ```
-Tarjima qilingan .srt fayl manzilini kiriting: /path/to/video-uz-normalized.srt
-Audiolar qaysi papkaga saqlansin [/path/to/audios]: ⏎
+Normalize qilingan .srt fayl manzilini kiriting (/path/to/docker/docker-uz-normalized.srt): /path/to/docker/docker-uz-normalized.srt
+Audiolar qaysi papkaga saqlansin [/path/to/docker/audios]: ⏎
 ```
 
-**Natija:** `/path/to/audios/00-00-01-500.wav`, `00-00-04-200.wav`, …
+**Natija:** `/path/to/docker/audios/00-00-01-500.wav`, `00-00-04-200.wav`, …
 
 Fayl nomi — subtitrning **boshlanish vaqti** (soat-daqiqa-soniya-millisekund). 8-bosqich audioni
 videoga aynan shu nom bo'yicha joylashtiradi, shuning uchun fayllarni qayta nomlamang.
@@ -205,7 +205,7 @@ Bir necha muhim xususiyat:
 
 - Model **bir marta** yuklanadi, barcha segmentlar shu jarayonda generatsiya qilinadi
 - Papkada tayyor fayl bo'lsa, u qayta generatsiya qilinmaydi (uzilgan jarayonni davom ettirish
-  mumkin). Ovozni butunlay yangilash uchun: `rm -rf /path/to/audios`
+  mumkin). Ovozni butunlay yangilash uchun: `rm -rf /path/to/docker/audios`
 - Audio o'z oralig'iga sig'masa, avtomatik tezlashtiriladi (maksimum 1.5x)
 
 ---
@@ -217,11 +217,11 @@ Bir necha muhim xususiyat:
 ```
 
 ```
-Video fayl manzilini kiriting: /path/to/video.mp4
-Fon audiosi qayerga saqlansin [/path/to/video-background.wav]: ⏎
+Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/docker.mp4
+Fon audiosi qayerga saqlansin [/path/to/docker/docker-background.wav]: ⏎
 ```
 
-**Natija:** `/path/to/video-background.wav` — musiqa va effektlar qoladi, inglizcha nutq yo'qoladi
+**Natija:** `/path/to/docker/docker-background.wav` — musiqa va effektlar qoladi, inglizcha nutq yo'qoladi
 
 CPU'da ~0.5x real vaqt (30 daqiqalik video ≈ 15-20 daqiqa). Apple Silicon'da tezroq:
 
@@ -238,12 +238,12 @@ DEMUCS_DEVICE=mps .venv/bin/python step6_remove_vocals.py
 ```
 
 ```
-Video fayl manzilini kiriting: /path/to/video.mp4
-Fon audiosi manzilini kiriting [/path/to/video-background.wav]: ⏎
-Natijaviy video qayerga saqlansin [/path/to/video-background.mp4]: ⏎
+Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/docker.mp4
+Fon audiosi manzilini kiriting [/path/to/docker/docker-background.wav]: ⏎
+Natijaviy video qayerga saqlansin [/path/to/docker/docker-background.mp4]: ⏎
 ```
 
-**Natija:** `/path/to/video-background.mp4` — tasvir o'zgarmaydi (`-c:v copy`), ovozda esa
+**Natija:** `/path/to/docker/docker-background.mp4` — tasvir o'zgarmaydi (`-c:v copy`), ovozda esa
 inglizcha nutq qolmagan
 
 ---
@@ -255,36 +255,37 @@ inglizcha nutq qolmagan
 ```
 
 ```
-Video fayl manzilini kiriting: /path/to/video-background.mp4
-Audiolar joylashgan papka manzilini kiriting [/path/to/audios]: ⏎
+Vokal o'chirilgan video fayl manzilini kiriting (/path/to/docker/docker-background.mp4): /path/to/docker/docker-background.mp4
+Audiolar joylashgan papka manzilini kiriting [/path/to/docker/audios]: ⏎
 ```
 
 > **Diqqat:** bu yerda asl `video.mp4` emas, 7-bosqichdan chiqqan `video-background.mp4`
 > berilishi kerak. Aks holda inglizcha nutq qaytib qo'shiladi.
 
-**Natija:** `/path/to/video-background-uz.mp4` — tayyor dublyaj qilingan video
+**Natija:** `/path/to/docker/docker-background-uz.mp4` — tayyor dublyaj qilingan video
 
-> `main.py` orqali ishlatilganda natija `/path/to/video-uz.mp4` deb nomlanadi.
+> `main.py` orqali ishlatilganda natija `/path/to/docker/docker-uz.mp4` deb nomlanadi.
 
 ---
 
 ## 4. Fayllar xaritasi
 
-`/path/to/video.mp4` uchun quvur oxirida quyidagilar hosil bo'ladi:
+`/path/to/docker/docker.mp4` uchun quvur oxirida quyidagilar hosil bo'ladi:
 
 ```
-/path/to/
-├── video.mp4                  ← manba
-├── video.wav                  ← 1-bosqich (16 kHz mono)
-├── video.srt                  ← 2-bosqich (inglizcha)
-├── video-uz.srt               ← 3-bosqich (o'zbekcha, qo'lda)
-├── video-uz-normalized.srt    ← 4-bosqich (TTS uchun tayyorlangan)
+/path/to/docker/
+├── docker.mp4                 ← manba
+├── docker.wav                 ← 1-bosqich (16 kHz mono)
+├── docker.srt                 ← 2-bosqich (inglizcha)
+├── docker-uz.srt              ← 3-bosqich (o'zbekcha, qo'lda)
+├── normalize.json             ← atamalar ro'yxati (ixtiyoriy, o'zingiz yaratasiz)
+├── docker-uz-normalized.srt   ← 4-bosqich (TTS uchun tayyorlangan)
 ├── audios/                    ← 5-bosqich
 │   ├── 00-00-01-500.wav
 │   └── 00-00-04-200.wav
-├── video-background.wav       ← 6-bosqich (nutqsiz fon)
-├── video-background.mp4       ← 7-bosqich (ovozi almashtirilgan video)
-└── video-uz.mp4               ← 8-bosqich (NATIJA)
+├── docker-background.wav      ← 6-bosqich (nutqsiz fon)
+├── docker-background.mp4      ← 7-bosqich (ovozi almashtirilgan video)
+└── docker-uz.mp4              ← 8-bosqich (NATIJA)
 ```
 
 ---
@@ -346,7 +347,7 @@ Yo'q. Har bir bosqich tayyor natijani qayta hisoblamaydi — `main.py` ni qaytad
 **O'zbekcha ovoz yoqmadi, boshqasini sinab ko'rmoqchiman.**
 
 ```bash
-rm -rf /path/to/audios
+rm -rf /path/to/docker/audios
 NAVOIY_REFERENCE=navoiy-tts/demo/warm_agent.wav .venv/bin/python step5_generate_audios.py
 ```
 

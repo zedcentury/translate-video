@@ -55,7 +55,7 @@ def generate_srt(
         Yaratilgan .srt faylning manzili.
     """
     if audio_path is None:
-        audio_path = ask_path("Audio fayl manzilini kiriting", must_exist=True)
+        audio_path = ask_path("Audio fayl manzilini kiriting (/path/to/docker/docker.wav)", must_exist=True)
     audio_path = Path(audio_path).expanduser().resolve()
     if not audio_path.is_file():
         fail(f"Audio fayl topilmadi: {audio_path}")

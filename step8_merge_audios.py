@@ -49,7 +49,11 @@ def merge_audios(
         Yaratilgan video faylning manzili.
     """
     if video_path is None:
-        video_path = ask_path("Video fayl manzilini kiriting", must_exist=True)
+        video_path = ask_path(
+            "Vokal o'chirilgan video fayl manzilini kiriting "
+            "(/path/to/docker/docker-background.mp4)",
+            must_exist=True,
+        )
     video_path = Path(video_path).expanduser().resolve()
     if not video_path.is_file():
         fail(f"Video fayl topilmadi: {video_path}")

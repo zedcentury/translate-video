@@ -70,17 +70,17 @@ TEMPO_TOLERANCE_MS = 150  # shu qadar oshib ketishga e'tibor berilmaydi
 
 
 def generate_audios(
-    translated_srt_path: str | Path | None = None,
+    normalized_srt_path: str | Path | None = None,
     audios_dir: str | Path | None = None,
     reference: str | Path = REFERENCE,
     emotion: str = DEFAULT_EMOTION,
     speed: float = DEFAULT_SPEED,
 ) -> Path:
-    """Tarjima qilingan .srt dagi har bir matn uchun alohida audio fayl yaratish.
+    """Normalize qilingan .srt dagi har bir matn uchun alohida audio fayl yaratish.
 
     Args:
-        translated_srt_path: Tarjima qilingan .srt fayl manzili. Berilmasa,
-            input orqali so'raladi.
+        normalized_srt_path: Normalize qilingan .srt fayl manzili (4-bosqich
+            natijasi). Berilmasa, input orqali so'raladi.
         audios_dir: Audiolar saqlanadigan papka manzili. Berilmasa, input orqali
             so'raladi (default qiymat: .srt fayl yonidagi `audios` papkasi).
         reference: Ovoz namunasi (.wav) — qaysi ovozda gapirilishi shundan olinadi.
@@ -90,23 +90,25 @@ def generate_audios(
     Returns:
         Audiolar saqlangan papka manzili.
     """
-    if translated_srt_path is None:
-        translated_srt_path = ask_path(
-            "Tarjima qilingan .srt fayl manzilini kiriting", must_exist=True
+    if normalized_srt_path is None:
+        normalized_srt_path = ask_path(
+            "Normalize qilingan .srt fayl manzilini kiriting "
+            "(/path/to/docker/docker-uz-normalized.srt)",
+            must_exist=True,
         )
-    translated_srt_path = Path(translated_srt_path).expanduser().resolve()
+    normalized_srt_path = Path(normalized_srt_path).expanduser().resolve()
 
     if audios_dir is None:
         audios_dir = ask_path(
             "Audiolar qaysi papkaga saqlansin",
-            default=translated_srt_path.parent / "audios",
+            default=normalized_srt_path.parent / "audios",
         )
     audios_dir = Path(audios_dir).expanduser().resolve()
     audios_dir.mkdir(parents=True, exist_ok=True)
 
-    cues = parse_srt(translated_srt_path)
+    cues = parse_srt(normalized_srt_path)
     if not cues:
-        fail(f"{translated_srt_path} ichida subtitr topilmadi.")
+        fail(f"{normalized_srt_path} ichida subtitr topilmadi.")
 
     # Har bir segment uchun ajratilgan vaqt: keyingi segment boshlanishigacha (ms).
     gaps = [
