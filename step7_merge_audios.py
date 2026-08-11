@@ -19,16 +19,10 @@ from utils import ask_path, fail, run_ffmpeg
 
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".aac")
 
-# Asl ovozning umumiy balandligi (1.0 — o'zgarishsiz).
+# Fon ovozining balandligi (1.0 — o'zgarishsiz). 6-bosqichda nutq allaqachon
+# olib tashlangani uchun fonni pasaytirish shart emas — faqat musiqa va
+# effektlar qolgan. Musiqa baland tuyulsa, shu qiymatni kamaytiring.
 ORIGINAL_VOLUME = 1.0
-
-# Yangi audio eshitilayotgan paytda asl ovoz shu darajaga pasaytiriladi
-# (0.05 — 5%). Qolgan joylarda asl ovoz ORIGINAL_VOLUME darajasida qoladi.
-DUCK_VOLUME = 0.15
-
-# Pasaytirish yangi audiodan biroz oldin boshlanib, biroz keyin tugaydi —
-# ovoz balandligi keskin sakramasligi uchun.
-DUCK_MARGIN_MS = 150
 
 # 00-01-02-500 (soat-daqiqa-soniya-millisekund). Ajratuvchi belgi ixtiyoriy,
 # millisekund qismi bo'lmasa 0 deb qabul qilinadi.
@@ -132,54 +126,6 @@ def has_audio_stream(video_path: Path) -> bool:
     return bool(process.stdout.strip())
 
 
-def probe_duration(audio_path: Path) -> float:
-    """Audio faylning davomiyligini (soniyada) aniqlash."""
-    process = subprocess.run(
-        [
-            "ffprobe", "-v", "error",
-            "-show_entries", "format=duration",
-            "-of", "csv=p=0",
-            str(audio_path),
-        ],
-        capture_output=True,
-        text=True,
-    )
-    try:
-        return float(process.stdout.strip())
-    except ValueError:
-        print(f"  [ogohlantirish] davomiyligi aniqlanmadi: {audio_path.name}")
-        return 0.0
-
-
-def duck_intervals(tracks: list[tuple[int, Path]]) -> list[tuple[float, float]]:
-    """Asl ovoz pasaytiriladigan oraliqlar (soniyada), ustma-ust tushganlari birlashtirilgan."""
-    margin = DUCK_MARGIN_MS / 1000
-    raw: list[tuple[float, float]] = []
-    for start_ms, audio_path in tracks:
-        duration = probe_duration(audio_path)
-        if duration <= 0:
-            continue
-        start = max(0.0, start_ms / 1000 - margin)
-        raw.append((start, start_ms / 1000 + duration + margin))
-
-    merged: list[tuple[float, float]] = []
-    for start, end in sorted(raw):
-        if merged and start <= merged[-1][1]:
-            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
-        else:
-            merged.append((start, end))
-    return merged
-
-
-def duck_expression(tracks: list[tuple[int, Path]]) -> str:
-    """ffmpeg `enable` ifodasi: qaysi oraliqlarda pasaytirish yoqilishi kerak."""
-    intervals = duck_intervals(tracks)
-    if not intervals:
-        return "0"  # hech qachon yoqilmaydi
-    print(f"  Asl ovoz {len(intervals)} ta oraliqda {int(DUCK_VOLUME * 100)}% ga pasaytiriladi.")
-    return "+".join(f"between(t,{start:.3f},{end:.3f})" for start, end in intervals)
-
-
 def mux(video_path: Path, tracks: list[tuple[int, Path]], output_path: Path) -> None:
     """ffmpeg: har bir audioni `adelay` bilan kechiktirib, `amix` orqali birlashtirish.
 
@@ -195,11 +141,7 @@ def mux(video_path: Path, tracks: list[tuple[int, Path]], output_path: Path) -> 
         print("  [ogohlantirish] videoda audio oqimi yo'q — faqat yangi audiolar qo'shiladi.")
     else:
         # Fon ovozini kechiktirish shart emas — u videoning boshidan boshlanadi.
-        # `enable` orqali faqat yangi audio eshitilayotgan oraliqlarda pasaytiriladi.
-        filters.append(f"[{background_stream}]volume={ORIGINAL_VOLUME}[orig0]")
-        filters.append(
-            f"[orig0]volume={DUCK_VOLUME}:enable='{duck_expression(tracks)}'[orig]"
-        )
+        filters.append(f"[{background_stream}]volume={ORIGINAL_VOLUME}[orig]")
         labels.append("[orig]")
 
     for start_ms, audio_path in tracks:
