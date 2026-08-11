@@ -93,9 +93,13 @@ Audio fayl qayerga saqlansin [/path/to/video.wav]: ⏎
 ```
 Audio fayl manzilini kiriting: /path/to/video.wav
 Transkripsiya .srt fayli qayerga saqlansin [/path/to/video.srt]: ⏎
+Audiodagi nutq tili (auto — o'zi aniqlaydi) [en]: ⏎
 ```
 
 **Natija:** `/path/to/video.srt`
+
+Til savolida Enter bosilsa `en` olinadi. Boshqa til uchun `ru`, `uz` kabi kod kiriting;
+`auto` deb yozsangiz, whisper tilni o'zi aniqlaydi.
 
 CPU'da `large-v3` real vaqtdan sekinroq ishlaydi — 30 daqiqalik video ~40-60 daqiqa oladi.
 Tezroq variant:

@@ -56,7 +56,7 @@ def main() -> None:
     print(f"  Tayyor: {audio_path}")
 
     print("\n[2/7] Audiodan .srt generatsiya qilinmoqda...")
-    srt_path = generate_srt(audio_path, srt_path, language=SRC_LANGUAGE)
+    srt_path = generate_srt(audio_path, srt_path, src_language=SRC_LANGUAGE)
     print(f"  Tayyor: {srt_path}")
 
     print(f"\n[3/7] .srt {SRC_LANGUAGE} -> {DST_LANGUAGE} tarjima qilinmoqda...")

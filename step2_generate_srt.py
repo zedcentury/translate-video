@@ -20,9 +20,9 @@ import os
 from pathlib import Path
 
 from srt_utils import Cue, write_srt
-from utils import ask_path, ask_yes_no, fail
+from utils import ask_path, ask_text, ask_yes_no, fail
 
-DEFAULT_LANGUAGE = "en"
+DEFAULT_SRC_LANGUAGE = "en"
 DEFAULT_MODEL = os.environ.get("WHISPER_MODEL", "large-v3")
 
 # Ketma-ket segmentlarni bir-biriga bog'lash kontekstni yaxshilaydi, lekin
@@ -38,7 +38,7 @@ WORD_TIMESTAMPS = False
 def generate_srt(
     audio_path: str | Path | None = None,
     srt_path: str | Path | None = None,
-    language: str = DEFAULT_LANGUAGE,
+    src_language: str | None = None,
     model_name: str = DEFAULT_MODEL,
 ) -> Path:
     """Audio fayldagi nutqni matnga o'girib, .srt fayl yaratish.
@@ -47,8 +47,8 @@ def generate_srt(
         audio_path: Manba audio fayl manzili. Berilmasa, input orqali so'raladi.
         srt_path: Natijaviy .srt fayl manzili. Berilmasa, input orqali so'raladi
             (default qiymat: audio bilan yonma-yon, `.srt` kengaytmasi bilan).
-        language: Audiodagi nutq tili (default: "en"). None berilsa, whisper
-            tilni o'zi aniqlaydi.
+        src_language: Audiodagi nutq tili. Berilmasa, input orqali so'raladi
+            (default qiymat: "en"). `auto` deb kiritilsa, whisper tilni o'zi aniqlaydi.
         model_name: whisper modeli (default: "large-v3").
 
     Returns:
@@ -67,13 +67,21 @@ def generate_srt(
         )
     srt_path = Path(srt_path).expanduser().resolve()
 
+    if src_language is None:
+        src_language = ask_text(
+            "Audiodagi nutq tili (auto — o'zi aniqlaydi)", default=DEFAULT_SRC_LANGUAGE
+        )
+    # whisper tilni o'zi aniqlashi uchun `language=None` bo'lishi kerak.
+    if src_language.lower() in {"auto", "avto"}:
+        src_language = None
+
     # Transkripsiya uzoq davom etadi — tayyor natija bo'lsa, qaytadan hisoblamaymiz.
     if srt_path.is_file() and srt_path.stat().st_size > 0:
         if not ask_yes_no(f"  {srt_path.name} allaqachon mavjud. Qaytadan generatsiya qilinsinmi?", default=False):
             print("  Mavjud fayl ishlatildi.")
             return srt_path
 
-    segments = transcribe(audio_path, language=language, model_name=model_name)
+    segments = transcribe(audio_path, language=src_language, model_name=model_name)
     cues = segments_to_cues(segments)
     if not cues:
         fail(f"{audio_path.name} ichidan nutq topilmadi (bo'sh natija).")

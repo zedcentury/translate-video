@@ -54,6 +54,12 @@ def ask_path(
         return path
 
 
+def ask_text(question: str, default: str) -> str:
+    """Matnli qiymat so'rash. Bo'sh Enter bosilsa, default qiymat olinadi."""
+    answer = input(f"{question} [{default}]: ").strip()
+    return answer or default
+
+
 def ask_yes_no(question: str, default: bool = True) -> bool:
     """Ha/yo'q savoli — javobni bool ko'rinishida qaytaradi."""
     hint = "[Ha/yo'q]" if default else "[ha/Yo'q]"
