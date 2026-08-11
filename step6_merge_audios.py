@@ -1,9 +1,11 @@
-"""5-bosqich: audiolarni videoga timestamp bo'yicha biriktirib, yangi video yasash.
+"""6-bosqich: audiolarni videoga timestamp bo'yicha biriktirib, yangi video yasash.
 
 Audio fayl nomining o'zi uning qaysi vaqtda boshlanishini bildiradi:
     00-01-02-500.wav  ->  00:01:02,500 dan boshlab qo'yiladi.
 
-Videoning ASL OVOZI saqlanadi — yangi audiolar uning ustiga qo'shiladi.
+Fon ovozi saqlanadi — yangi audiolar uning ustiga qo'shiladi. Fon sifatida
+5-bosqichda demucs ajratib bergan nutqsiz audio ishlatiladi; agar u bo'lmasa,
+videoning o'z ovozi olinadi.
 """
 
 from __future__ import annotations
@@ -39,6 +41,7 @@ def merge_audios(
     video_path: str | Path | None = None,
     audios_dir: str | Path | None = None,
     output_path: str | Path | None = None,
+    background_audio: str | Path | None = None,
 ) -> Path:
     """Audiolarni videoga fayl nomidagi vaqt bo'yicha biriktirish.
 
@@ -47,6 +50,9 @@ def merge_audios(
         audios_dir: Audiolar joylashgan papka manzili. Berilmasa, input orqali
             so'raladi (default qiymat: video yonidagi `audios` papkasi).
         output_path: Natijaviy video manzili. Berilmasa, `<nom>-uz.<kengaytma>`.
+        background_audio: Fon audiosi (5-bosqichdagi nutqsiz fayl). Berilmasa,
+            video yonidagi `<nom>-background.wav` qidiriladi; u ham bo'lmasa,
+            videoning o'z ovozi ishlatiladi.
 
     Returns:
         Yaratilgan video faylning manzili.
@@ -73,6 +79,18 @@ def merge_audios(
     output_path = Path(output_path).expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    if background_audio is None:
+        # 5-bosqich natijasi yonida turgan bo'lsa, avtomatik olinadi.
+        candidate = video_path.with_name(f"{video_path.stem}-background.wav")
+        background_audio = candidate if candidate.is_file() else None
+    if background_audio is not None:
+        background_audio = Path(background_audio).expanduser().resolve()
+        if not background_audio.is_file():
+            fail(f"Fon audiosi topilmadi: {background_audio}")
+        print(f"  Fon audiosi: {background_audio.name} (nutqsiz)")
+    else:
+        print("  Fon audiosi topilmadi — videoning o'z ovozi ishlatiladi.")
+
     tracks = collect_tracks(audios_dir)
     if not tracks:
         fail(
@@ -81,7 +99,7 @@ def merge_audios(
         )
     print(f"  {len(tracks)} ta audio fayl topildi.")
 
-    mux(video_path, tracks, output_path)
+    mux(video_path, tracks, output_path, background_audio)
     return output_path
 
 
@@ -177,32 +195,46 @@ def duck_expression(tracks: list[tuple[int, Path]]) -> str:
     return "+".join(f"between(t,{start:.3f},{end:.3f})" for start, end in intervals)
 
 
-def mux(video_path: Path, tracks: list[tuple[int, Path]], output_path: Path) -> None:
+def mux(
+    video_path: Path,
+    tracks: list[tuple[int, Path]],
+    output_path: Path,
+    background_audio: Path | None = None,
+) -> None:
     """ffmpeg: har bir audioni `adelay` bilan kechiktirib, `amix` orqali birlashtirish.
 
-    Videoning asl ovozi ham aralashmaga kiritiladi (agar mavjud bo'lsa).
+    Fon ovozi ham aralashmaga kiritiladi (nutqsiz fayl yoki videoning o'z ovozi).
     """
     inputs: list[str] = ["-i", str(video_path)]
     filters: list[str] = []
     labels: list[str] = []
+    next_input = 1  # 0 — video
 
-    keep_original = has_audio_stream(video_path)
-    if keep_original:
-        # Asl ovozni kechiktirish shart emas — u videoning boshidan boshlanadi.
+    if background_audio is not None:
+        inputs += ["-i", str(background_audio)]
+        background_stream = f"{next_input}:a"
+        next_input += 1
+    elif has_audio_stream(video_path):
+        background_stream = "0:a"
+    else:
+        background_stream = None
+        print("  [ogohlantirish] fon ovozi yo'q — faqat yangi audiolar qo'shiladi.")
+
+    if background_stream is not None:
+        # Fon ovozini kechiktirish shart emas — u videoning boshidan boshlanadi.
         # `enable` orqali faqat yangi audio eshitilayotgan oraliqlarda pasaytiriladi.
-        filters.append(f"[0:a]volume={ORIGINAL_VOLUME}[orig0]")
+        filters.append(f"[{background_stream}]volume={ORIGINAL_VOLUME}[orig0]")
         filters.append(
             f"[orig0]volume={DUCK_VOLUME}:enable='{duck_expression(tracks)}'[orig]"
         )
         labels.append("[orig]")
-    else:
-        print("  [ogohlantirish] videoda audio oqimi yo'q — faqat yangi audiolar qo'shiladi.")
 
-    for position, (start_ms, audio_path) in enumerate(tracks, start=1):
+    for start_ms, audio_path in tracks:
         inputs += ["-i", str(audio_path)]
-        label = f"a{position}"
-        filters.append(f"[{position}:a]adelay=delays={start_ms}:all=1[{label}]")
+        label = f"a{next_input}"
+        filters.append(f"[{next_input}:a]adelay=delays={start_ms}:all=1[{label}]")
         labels.append(f"[{label}]")
+        next_input += 1
 
     filters.append(
         f"{''.join(labels)}amix=inputs={len(labels)}:duration=longest:normalize=0[aout]"
