@@ -37,11 +37,53 @@ Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo
 
 ### Modellar
 
-- **whisper `large-v3`** — birinchi ishga tushirishda ~3 GB avtomatik yuklab olinadi
-  (`~/.cache/whisper`)
-- **demucs `htdemucs`** — birinchi ishga tushirishda avtomatik yuklab olinadi
-- **CosyVoice2-0.5B** — `CosyVoice/pretrained_models/CosyVoice2-0.5B/` da bo'lishi kerak
+**Avtomatik yuklab olinadi** (birinchi ishga tushirishda):
+
+- **whisper `large-v3`** — ~3 GB, `~/.cache/whisper` ga
+- **demucs `htdemucs`** — ~300 MB, `~/.cache/torch/hub` ga
+
+**Qo'lda yuklab olinadi:**
+
+- **CosyVoice2-0.5B** — ~4.5 GB, `CosyVoice/pretrained_models/CosyVoice2-0.5B/` ga (pastga qarang)
 - **Navoiy checkpoint** — `navoiy-tts/emotion_600h_joint.pt`
+
+#### CosyVoice2-0.5B ni yuklab olish
+
+Agar `CosyVoice/` papkasi hali bo'lmasa, avval repozitoriyni klon qiling. `--recursive` **majburiy** —
+`third_party/Matcha-TTS` submodul sifatida ulangan va usiz kod ishlamaydi:
+
+```bash
+git clone --recursive https://github.com/FunAudioLLM/CosyVoice.git
+```
+
+So'ng modelni yuklab oling (ModelScope orqali — CosyVoice hujjatida tavsiya etilgan yo'l):
+
+```bash
+.venv/bin/python -c "from modelscope import snapshot_download; snapshot_download('iic/CosyVoice2-0.5B', local_dir='CosyVoice/pretrained_models/CosyVoice2-0.5B')"
+```
+
+ModelScope sekin ishlasa yoki xatolik bersa, HuggingFace orqali:
+
+```bash
+.venv/bin/python -c "from huggingface_hub import snapshot_download; snapshot_download('FunAudioLLM/CosyVoice2-0.5B', local_dir='CosyVoice/pretrained_models/CosyVoice2-0.5B')"
+```
+
+`modelscope` yoki `huggingface_hub` o'rnatilmagan bo'lsa:
+
+```bash
+.venv/bin/pip install modelscope huggingface_hub
+```
+
+**Tekshirish** — papka ichida kamida shu fayllar bo'lishi kerak:
+
+```bash
+ls CosyVoice/pretrained_models/CosyVoice2-0.5B/
+```
+
+```
+CosyVoice-BlankEN/   campplus.onnx   cosyvoice2.yaml   flow.pt   hift.pt   llm.pt
+speech_tokenizer_v2.onnx   flow.decoder.estimator.fp32.onnx   config.json
+```
 
 ---
 
