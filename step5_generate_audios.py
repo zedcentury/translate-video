@@ -1,4 +1,4 @@
-"""4-bosqich: tarjima qilingan .srt dagi har bir matnni audioga o'girish.
+"""5-bosqich: tarjima qilingan .srt dagi har bir matnni audioga o'girish.
 
 Navoiy TTS (CosyVoice2 runtime) orqali amalga oshiriladi. Ya'ni quyidagi
 buyruqning dasturiy ko'rinishi:
@@ -15,7 +15,7 @@ jarayonda generatsiya qilinadi (har bir segment uchun alohida jarayon
 ochilsa, 0.5B model qayta-qayta yuklanib, vaqt bir necha barobar oshib ketardi).
 
 Fayl nomi timestamp dagi boshlanish vaqti bo'yicha beriladi (00-01-02-500.wav),
-chunki 5-bosqich audioni videoga aynan fayl nomidagi vaqt bo'yicha biriktiradi.
+chunki 8-bosqich audioni videoga aynan fayl nomidagi vaqt bo'yicha biriktiradi.
 
 Environment o'zgaruvchilari:
     NAVOIY_REFERENCE   — ovoz namunasi (default: navoiy-tts/demo/xurmo.wav)
@@ -53,6 +53,13 @@ DEFAULT_SEED = int(os.environ.get("NAVOIY_SEED", "1986"))
 
 SAMPLE_RATE = 24000
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".aac")
+
+# Matnni normalize qilish 4-bosqichga ko'chirildi (step4_normalize_srt.py), shuning
+# uchun bu yerda takroran normalize qilinmaydi — aks holda 4-bosqichda almashtirilgan
+# atamalar yana o'zgarib ketishi mumkin. Agar bu bosqichga normalize qilinmagan .srt
+# berilsa, True qilib qo'yish kerak.
+NORMALIZE_TEXT = False
+NORMALIZE_MODE = "infer"
 
 # Generatsiya qilingan audio o'z segmentiga sig'masa (keyingi segment boshlanishidan
 # oshib ketsa), ffmpeg `atempo` orqali tezlashtiriladi. Tovush balandligi (pitch)
@@ -209,7 +216,7 @@ class NavoiyTTS:
         chunks = []
         with self.torch.inference_mode():
             for result in self.model.inference_instruct2(
-                self.normalize(text, mode="infer"),
+                self.normalize(text, mode=NORMALIZE_MODE) if NORMALIZE_TEXT else text,
                 self.instruction,
                 str(self.reference),
                 stream=False,

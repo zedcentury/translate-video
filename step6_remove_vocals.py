@@ -1,8 +1,8 @@
-"""5-bosqich: videodagi ovozdan shaxs nutqini (vokalni) ajratib olib tashlash.
+"""6-bosqich: videodagi ovozdan shaxs nutqini (vokalni) ajratib olib tashlash.
 
 Demucs (Meta'ning ochiq modeli) orqali amalga oshiriladi. Natijada asl ovozdan
 faqat FON qoladi: musiqa, effektlar, tabiat tovushlari — gapirgan odam ovozi esa
-olib tashlanadi. 6-bosqich shu fon ustiga o'zbekcha audiolarni qo'yadi.
+olib tashlanadi. 7-bosqich shu fon ustiga o'zbekcha audiolarni qo'yadi.
 
 Qo'lda qilinganda bu shunga teng:
     ffmpeg -i film.mp4 -vn -ar 44100 -ac 2 audio.wav

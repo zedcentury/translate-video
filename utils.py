@@ -54,6 +54,20 @@ def ask_path(
         return path
 
 
+def ask_optional_path(question: str, must_exist: bool = True) -> Path | None:
+    """Ixtiyoriy fayl manzilini so'rash. Bo'sh Enter bosilsa, None qaytadi."""
+    while True:
+        raw = input(f"{question} (o'tkazib yuborish uchun Enter): ").strip().strip("'\"")
+        if not raw:
+            return None
+
+        path = Path(raw).expanduser().resolve()
+        if must_exist and not path.is_file():
+            print(f"  Bunday fayl topilmadi: {path}")
+            continue
+        return path
+
+
 def ask_text(question: str, default: str) -> str:
     """Matnli qiymat so'rash. Bo'sh Enter bosilsa, default qiymat olinadi."""
     answer = input(f"{question} [{default}]: ").strip()

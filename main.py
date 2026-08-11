@@ -5,10 +5,11 @@ Bosqichlar ketma-ketligi:
     1. step1_extract_audio  — videodan audio ajratib olish (ffmpeg)
     2. step2_generate_srt   — audiodan .srt transkripsiya (openai-whisper)
     3. step3_translate_srt  — .srt ni tarjima qilish (LLM — rejada)
-    4. step4_generate_audios— tarjimadagi matnlarni audioga o'girish (Navoiy TTS)
-    5. step5_remove_vocals  — asl ovozdan nutqni olib tashlash (demucs)
-    6. step6_replace_audio  — videoning ovozini nutqsiz fonga almashtirish (ffmpeg)
-    7. step7_merge_audios   — audiolarni videoga timestamp bo'yicha biriktirish (ffmpeg)
+    4. step4_normalize_srt  — matnlarni TTS uchun normalize qilish (uztts)
+    5. step5_generate_audios— tarjimadagi matnlarni audioga o'girish (Navoiy TTS)
+    6. step6_remove_vocals  — asl ovozdan nutqni olib tashlash (demucs)
+    7. step7_replace_audio  — videoning ovozini nutqsiz fonga almashtirish (ffmpeg)
+    8. step8_merge_audios   — audiolarni videoga timestamp bo'yicha biriktirish (ffmpeg)
 
 Har bir bosqichni alohida ham ishga tushirish mumkin, masalan:
     python step1_extract_audio.py
@@ -22,10 +23,11 @@ import sys
 from step1_extract_audio import extract_audio
 from step2_generate_srt import generate_srt
 from step3_translate_srt import translate_srt
-from step4_generate_audios import generate_audios
-from step5_remove_vocals import remove_vocals
-from step6_replace_audio import replace_audio
-from step7_merge_audios import merge_audios
+from step4_normalize_srt import normalize_srt
+from step5_generate_audios import generate_audios
+from step6_remove_vocals import remove_vocals
+from step7_replace_audio import replace_audio
+from step8_merge_audios import merge_audios
 from utils import ask_path, fail
 
 SRC_LANGUAGE = "en"
@@ -46,38 +48,43 @@ def main() -> None:
     audio_path = video_path.with_suffix(".wav")
     srt_path = video_path.with_suffix(".srt")
     translated_srt_path = video_path.with_name(f"{video_path.stem}-{DST_LANGUAGE}.srt")
+    normalized_srt_path = video_path.with_name(f"{video_path.stem}-{DST_LANGUAGE}-normalized.srt")
     audios_dir = video_path.parent / "audios"
     background_path = video_path.with_name(f"{video_path.stem}-background.wav")
     background_video = video_path.with_name(f"{video_path.stem}-background{video_path.suffix}")
     output_path = video_path.with_name(f"{video_path.stem}-{DST_LANGUAGE}{video_path.suffix}")
 
-    print("\n[1/7] Videodan audio ajratilmoqda...")
+    print("\n[1/8] Videodan audio ajratilmoqda...")
     audio_path = extract_audio(video_path, audio_path)
     print(f"  Tayyor: {audio_path}")
 
-    print("\n[2/7] Audiodan .srt generatsiya qilinmoqda...")
+    print("\n[2/8] Audiodan .srt generatsiya qilinmoqda...")
     srt_path = generate_srt(audio_path, srt_path, src_language=SRC_LANGUAGE)
     print(f"  Tayyor: {srt_path}")
 
-    print(f"\n[3/7] .srt {SRC_LANGUAGE} -> {DST_LANGUAGE} tarjima qilinmoqda...")
+    print(f"\n[3/8] .srt {SRC_LANGUAGE} -> {DST_LANGUAGE} tarjima qilinmoqda...")
     translated_srt_path = translate_srt(
         srt_path, translated_srt_path, src_language=SRC_LANGUAGE, dst_language=DST_LANGUAGE
     )
     print(f"  Tayyor: {translated_srt_path}")
 
-    print("\n[4/7] Tarjima matnlari audioga o'girilmoqda...")
-    audios_dir = generate_audios(translated_srt_path, audios_dir)
+    print("\n[4/8] Matnlar TTS uchun normalize qilinmoqda...")
+    normalized_srt_path = normalize_srt(translated_srt_path, normalized_srt_path)
+    print(f"  Tayyor: {normalized_srt_path}")
+
+    print("\n[5/8] Tarjima matnlari audioga o'girilmoqda...")
+    audios_dir = generate_audios(normalized_srt_path, audios_dir)
     print(f"  Tayyor: {audios_dir}")
 
-    print("\n[5/7] Asl ovozdan nutq olib tashlanmoqda...")
+    print("\n[6/8] Asl ovozdan nutq olib tashlanmoqda...")
     background_path = remove_vocals(video_path, background_path)
     print(f"  Tayyor: {background_path}")
 
-    print("\n[6/7] Videoning ovozi nutqsiz fonga almashtirilmoqda...")
+    print("\n[7/8] Videoning ovozi nutqsiz fonga almashtirilmoqda...")
     background_video = replace_audio(video_path, background_path, background_video)
     print(f"  Tayyor: {background_video}")
 
-    print("\n[7/7] Audiolar videoga biriktirilmoqda...")
+    print("\n[8/8] Audiolar videoga biriktirilmoqda...")
     output_path = merge_audios(background_video, audios_dir, output_path)
 
     print("\n" + "=" * 60)

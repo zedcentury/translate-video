@@ -1,10 +1,10 @@
-"""6-bosqich: videoning audio qismini nutqsiz fon audiosiga almashtirish.
+"""7-bosqich: videoning audio qismini nutqsiz fon audiosiga almashtirish.
 
-5-bosqichda demucs ajratib bergan `<nom>-background.wav` faylini videoga
+6-bosqichda demucs ajratib bergan `<nom>-background.wav` faylini videoga
 yagona audio oqim sifatida joylashtiradi. Ya'ni natijaviy videoda inglizcha
 nutq umuman qolmaydi — faqat musiqa, effektlar va boshqa fon tovushlari.
 
-7-bosqich shu video ustiga o'zbekcha audiolarni qo'yadi.
+8-bosqich shu video ustiga o'zbekcha audiolarni qo'yadi.
 
 Video oqimi qayta kodlanmaydi (`-c:v copy`), shuning uchun tez ishlaydi va
 sifat yo'qolmaydi.
@@ -29,7 +29,7 @@ def replace_audio(
 
     Args:
         video_path: Manba video fayl manzili. Berilmasa, input orqali so'raladi.
-        background_audio: Nutqsiz fon audiosi (5-bosqich natijasi). Berilmasa,
+        background_audio: Nutqsiz fon audiosi (6-bosqich natijasi). Berilmasa,
             input orqali so'raladi (default: `<nom>-background.wav`).
         output_path: Natijaviy video manzili. Berilmasa, input orqali so'raladi
             (default: `<nom>-background.<kengaytma>`).

@@ -1,7 +1,7 @@
 # Video tarjimon: ingliz → o'zbek dublyaj
 
 Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo'ljallangan
-7 bosqichli quvur (pipeline). Har bir bosqich alohida faylda va uni **mustaqil ravishda** ham,
+8 bosqichli quvur (pipeline). Har bir bosqich alohida faylda va uni **mustaqil ravishda** ham,
 `main.py` orqali **ketma-ket** ham ishga tushirish mumkin.
 
 | # | Fayl | Nima qiladi | Vosita |
@@ -9,10 +9,11 @@ Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo
 | 1 | `step1_extract_audio.py` | Videodan audio ajratib oladi | ffmpeg |
 | 2 | `step2_generate_srt.py` | Audiodan inglizcha `.srt` yasaydi | openai-whisper `large-v3` |
 | 3 | `step3_translate_srt.py` | `.srt` ni o'zbekchaga tarjima qiladi | **qo'lda** (LLM) |
-| 4 | `step4_generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi | Navoiy TTS (CosyVoice2) |
-| 5 | `step5_remove_vocals.py` | Asl ovozdan odam nutqini olib tashlaydi | demucs |
-| 6 | `step6_replace_audio.py` | Video ovozini nutqsiz fonga almashtiradi | ffmpeg |
-| 7 | `step7_merge_audios.py` | O'zbekcha audiolarni timestamp bo'yicha qo'yadi | ffmpeg |
+| 4 | `step4_normalize_srt.py` | Sonlar/sanalarni so'zga aylantiradi, atamalarni almashtiradi | uztts |
+| 5 | `step5_generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi | Navoiy TTS (CosyVoice2) |
+| 6 | `step6_remove_vocals.py` | Asl ovozdan odam nutqini olib tashlaydi | demucs |
+| 7 | `step7_replace_audio.py` | Video ovozini nutqsiz fonga almashtiradi | ffmpeg |
+| 8 | `step8_merge_audios.py` | O'zbekcha audiolarni timestamp bo'yicha qo'yadi | ffmpeg |
 
 ---
 
@@ -56,11 +57,12 @@ Barcha bosqichlarni ketma-ket bajaradi va faqat kerakli joyda savol beradi:
 Video fayl manzilini kiriting: /path/to/video.mp4
 ```
 
-Shundan keyin dastur o'zi ishlaydi. Faqat uch joyda to'xtaydi:
+Shundan keyin dastur o'zi ishlaydi. Faqat quyidagi joylarda to'xtaydi:
 
 1. `.srt` allaqachon mavjud bo'lsa — qayta generatsiya qilishni so'raydi (Enter = yo'q)
 2. **3-bosqich** — o'zbekcha tarjimani qo'lda tayyorlashingizni kutadi (pastga qarang)
-3. `-background.wav` mavjud bo'lsa — qayta ajratishni so'raydi (Enter = yo'q)
+3. **4-bosqich** — atamalar JSON faylini so'raydi (kerak bo'lmasa Enter)
+4. `-background.wav` mavjud bo'lsa — qayta ajratishni so'raydi (Enter = yo'q)
 
 ---
 
@@ -135,20 +137,68 @@ tarjima qildiring, natijani `/path/to/video-uz.srt` nomi bilan saqlang, so'ng `h
 
 ---
 
-### 4-bosqich — o'zbekcha audiolar (TTS)
+### 4-bosqich — matnni TTS uchun normalize qilish
 
 ```bash
-.venv/bin/python step4_generate_audios.py
+.venv/bin/python step4_normalize_srt.py
 ```
 
 ```
 Tarjima qilingan .srt fayl manzilini kiriting: /path/to/video-uz.srt
+Normalize qilingan .srt qayerga saqlansin [/path/to/video-uz-normalized.srt]: ⏎
+Atamalar JSON fayli manzilini kiriting (o'tkazib yuborish uchun Enter): /path/to/terms.json
+```
+
+**Natija:** `/path/to/video-uz-normalized.srt`
+
+Bu bosqich ikki ishni bajaradi:
+
+**1) Sonlar, sanalar va vaqtni so'zga aylantiradi** (`uztts.normalize`) — TTS raqamlarni o'qiy
+olmaydi:
+
+```
+Bugun 16.07.2026, soat 14:30 da uchrashamiz.
+→ Bugun o'n olti iyul ikki ming yigirma olti, soat o'n to'rt o'ttiz da uchrashamiz.
+```
+
+**2) Inglizcha atamalarni almashtiradi** (ixtiyoriy) — tarjima qilinmaydigan atamalarni TTS
+noto'g'ri talaffuz qiladi. Ro'yxat JSON faylda beriladi:
+
+```json
+{
+  "docker": "do'ker",
+  "kubernetes": "kubernites",
+  "container": "konteyner"
+}
+```
+
+Namuna sifatida `terms.example.json` fayli bor — uni nusxalab, o'zingizga moslang:
+
+```bash
+cp terms.example.json /path/to/terms.json
+```
+
+Almashtirish katta-kichik harfga qaramaydi va faqat **butun so'zlarga** qo'llaniladi —
+`Docker` → `do'ker`, lekin `dockerfile` tegilmaydi.
+
+Atamalar kerak bo'lmasa, savolda shunchaki **Enter** bosing — faqat normalize bajariladi.
+
+---
+
+### 5-bosqich — o'zbekcha audiolar (TTS)
+
+```bash
+.venv/bin/python step5_generate_audios.py
+```
+
+```
+Tarjima qilingan .srt fayl manzilini kiriting: /path/to/video-uz-normalized.srt
 Audiolar qaysi papkaga saqlansin [/path/to/audios]: ⏎
 ```
 
 **Natija:** `/path/to/audios/00-00-01-500.wav`, `00-00-04-200.wav`, …
 
-Fayl nomi — subtitrning **boshlanish vaqti** (soat-daqiqa-soniya-millisekund). 7-bosqich audioni
+Fayl nomi — subtitrning **boshlanish vaqti** (soat-daqiqa-soniya-millisekund). 8-bosqich audioni
 videoga aynan shu nom bo'yicha joylashtiradi, shuning uchun fayllarni qayta nomlamang.
 
 Bir necha muhim xususiyat:
@@ -160,10 +210,10 @@ Bir necha muhim xususiyat:
 
 ---
 
-### 5-bosqich — nutqni fondan ajratish
+### 6-bosqich — nutqni fondan ajratish
 
 ```bash
-.venv/bin/python step5_remove_vocals.py
+.venv/bin/python step6_remove_vocals.py
 ```
 
 ```
@@ -176,15 +226,15 @@ Fon audiosi qayerga saqlansin [/path/to/video-background.wav]: ⏎
 CPU'da ~0.5x real vaqt (30 daqiqalik video ≈ 15-20 daqiqa). Apple Silicon'da tezroq:
 
 ```bash
-DEMUCS_DEVICE=mps .venv/bin/python step5_remove_vocals.py
+DEMUCS_DEVICE=mps .venv/bin/python step6_remove_vocals.py
 ```
 
 ---
 
-### 6-bosqich — video ovozini fonga almashtirish
+### 7-bosqich — video ovozini fonga almashtirish
 
 ```bash
-.venv/bin/python step6_replace_audio.py
+.venv/bin/python step7_replace_audio.py
 ```
 
 ```
@@ -198,10 +248,10 @@ inglizcha nutq qolmagan
 
 ---
 
-### 7-bosqich — o'zbekcha audiolarni biriktirish
+### 8-bosqich — o'zbekcha audiolarni biriktirish
 
 ```bash
-.venv/bin/python step7_merge_audios.py
+.venv/bin/python step8_merge_audios.py
 ```
 
 ```
@@ -209,7 +259,7 @@ Video fayl manzilini kiriting: /path/to/video-background.mp4
 Audiolar joylashgan papka manzilini kiriting [/path/to/audios]: ⏎
 ```
 
-> **Diqqat:** bu yerda asl `video.mp4` emas, 6-bosqichdan chiqqan `video-background.mp4`
+> **Diqqat:** bu yerda asl `video.mp4` emas, 7-bosqichdan chiqqan `video-background.mp4`
 > berilishi kerak. Aks holda inglizcha nutq qaytib qo'shiladi.
 
 **Natija:** `/path/to/video-background-uz.mp4` — tayyor dublyaj qilingan video
@@ -228,12 +278,13 @@ Audiolar joylashgan papka manzilini kiriting [/path/to/audios]: ⏎
 ├── video.wav                  ← 1-bosqich (16 kHz mono)
 ├── video.srt                  ← 2-bosqich (inglizcha)
 ├── video-uz.srt               ← 3-bosqich (o'zbekcha, qo'lda)
-├── audios/                    ← 4-bosqich
+├── video-uz-normalized.srt    ← 4-bosqich (TTS uchun tayyorlangan)
+├── audios/                    ← 5-bosqich
 │   ├── 00-00-01-500.wav
 │   └── 00-00-04-200.wav
-├── video-background.wav       ← 5-bosqich (nutqsiz fon)
-├── video-background.mp4       ← 6-bosqich (ovozi almashtirilgan video)
-└── video-uz.mp4               ← 7-bosqich (NATIJA)
+├── video-background.wav       ← 6-bosqich (nutqsiz fon)
+├── video-background.mp4       ← 7-bosqich (ovozi almashtirilgan video)
+└── video-uz.mp4               ← 8-bosqich (NATIJA)
 ```
 
 ---
@@ -250,7 +301,7 @@ Kodga tegmasdan, environment o'zgaruvchilari orqali:
 | `WHISPER_DEVICE` | `cpu` / `cuda` | `mps` ni sinab ko'rish mumkin |
 | `WHISPER_DOWNLOAD_ROOT` | `~/.cache/whisper` | model saqlanadigan papka |
 
-### 4-bosqich (Navoiy TTS)
+### 5-bosqich (Navoiy TTS)
 
 | O'zgaruvchi | Default | Izoh |
 |---|---|---|
@@ -269,7 +320,7 @@ Mavjud hissiyotlar: `calm`, `happy`, `excited`, `sad`, `angry`, `nervous`, `scar
 Mavjud ovoz namunalari: `navoiy-tts/demo/` ichida — `xurmo.wav`, `calm_intro.wav`,
 `warm_agent.wav`, `happy.wav`, `sad.wav`, `angry.wav`, `surprised.wav`, `long_form.wav`
 
-### 5-bosqich (demucs)
+### 6-bosqich (demucs)
 
 | O'zgaruvchi | Default | Izoh |
 |---|---|---|
@@ -281,9 +332,9 @@ Mavjud ovoz namunalari: `navoiy-tts/demo/` ichida — `xurmo.wav`, `calm_intro.w
 | Fayl | Konstanta | Default | Izoh |
 |---|---|---|---|
 | `step2_generate_srt.py` | `CONDITION_ON_PREVIOUS_TEXT` | `False` | `True` — kontekst yaxshi, lekin takrorlanish xavfi bor |
-| `step4_generate_audios.py` | `FIT_TO_TIMELINE` | `True` | audioni o'z oralig'iga sig'dirish |
-| `step4_generate_audios.py` | `MAX_TEMPO` | `1.5` | maksimal tezlashtirish |
-| `step7_merge_audios.py` | `ORIGINAL_VOLUME` | `1.0` | fon musiqasining balandligi |
+| `step5_generate_audios.py` | `FIT_TO_TIMELINE` | `True` | audioni o'z oralig'iga sig'dirish |
+| `step5_generate_audios.py` | `MAX_TEMPO` | `1.5` | maksimal tezlashtirish |
+| `step8_merge_audios.py` | `ORIGINAL_VOLUME` | `1.0` | fon musiqasining balandligi |
 
 ---
 
@@ -296,15 +347,15 @@ Yo'q. Har bir bosqich tayyor natijani qayta hisoblamaydi — `main.py` ni qaytad
 
 ```bash
 rm -rf /path/to/audios
-NAVOIY_REFERENCE=navoiy-tts/demo/warm_agent.wav .venv/bin/python step4_generate_audios.py
+NAVOIY_REFERENCE=navoiy-tts/demo/warm_agent.wav .venv/bin/python step5_generate_audios.py
 ```
 
 **Fon musiqasi o'zbekcha nutqni bosib ketyapti.**
-`step7_merge_audios.py` da `ORIGINAL_VOLUME` ni `0.6` ga tushiring va 7-bosqichni qayta ishga
+`step8_merge_audios.py` da `ORIGINAL_VOLUME` ni `0.6` ga tushiring va 8-bosqichni qayta ishga
 tushiring (u tez ishlaydi — video qayta kodlanmaydi).
 
 **O'zbekcha nutq keyingi jumla ustiga chiqib ketyapti.**
-O'zbekcha matn inglizchadan uzunroq bo'ladi. `step4_generate_audios.py` da `MAX_TEMPO` ni `1.8`
+O'zbekcha matn inglizchadan uzunroq bo'ladi. `step5_generate_audios.py` da `MAX_TEMPO` ni `1.8`
 ga ko'taring yoki `NAVOIY_SPEED=1.15` bilan generatsiya qiling.
 
 **`ModuleNotFoundError: No module named 'pkg_resources'`**
