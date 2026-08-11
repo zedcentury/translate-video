@@ -7,7 +7,7 @@ buyruqning dasturiy ko'rinishi:
       --cosyvoice-dir CosyVoice \\
       --base-model-dir CosyVoice/pretrained_models/CosyVoice2-0.5B \\
       --checkpoint navoiy-tts/emotion_600h_joint.pt \\
-      --reference navoiy-tts/demo/calm_intro.wav \\
+      --reference navoiy-tts/demo/xurmo.wav \\
       --text "..." --emotion calm --output audio.wav
 
 Farqi: model FAQAT BIR MARTA yuklanadi va barcha segmentlar shu bitta
@@ -18,7 +18,7 @@ Fayl nomi timestamp dagi boshlanish vaqti bo'yicha beriladi (00-01-02-500.wav),
 chunki 5-bosqich audioni videoga aynan fayl nomidagi vaqt bo'yicha biriktiradi.
 
 Environment o'zgaruvchilari:
-    NAVOIY_REFERENCE   — ovoz namunasi (default: navoiy-tts/demo/calm_intro.wav)
+    NAVOIY_REFERENCE   — ovoz namunasi (default: navoiy-tts/demo/xurmo.wav)
     NAVOIY_EMOTION     — hissiyot (default: calm). Ro'yxat: inference.py --list-emotions
     NAVOIY_SPEED       — nutq tezligi (default: 1.0)
     NAVOIY_SEED        — tasodifiylik urug'i (default: 1986)
@@ -44,7 +44,7 @@ BASE_MODEL_DIR = Path(
 )
 NAVOIY_DIR = Path(os.environ.get("NAVOIY_DIR", ROOT / "navoiy-tts"))
 CHECKPOINT = Path(os.environ.get("NAVOIY_CHECKPOINT", NAVOIY_DIR / "emotion_600h_joint.pt"))
-REFERENCE = Path(os.environ.get("NAVOIY_REFERENCE", NAVOIY_DIR / "demo" / "calm_intro.wav"))
+REFERENCE = Path(os.environ.get("NAVOIY_REFERENCE", NAVOIY_DIR / "demo" / "xurmo.wav"))
 EMOTIONS_FILE = Path(os.environ.get("NAVOIY_EMOTIONS_FILE", NAVOIY_DIR / "emotions_40h.json"))
 
 DEFAULT_EMOTION = os.environ.get("NAVOIY_EMOTION", "calm")

@@ -22,7 +22,7 @@ ORIGINAL_VOLUME = 1.0
 
 # Yangi audio eshitilayotgan paytda asl ovoz shu darajaga pasaytiriladi
 # (0.05 — 5%). Qolgan joylarda asl ovoz ORIGINAL_VOLUME darajasida qoladi.
-DUCK_VOLUME = 0.05
+DUCK_VOLUME = 0.15
 
 # Pasaytirish yangi audiodan biroz oldin boshlanib, biroz keyin tugaydi —
 # ovoz balandligi keskin sakramasligi uchun.
