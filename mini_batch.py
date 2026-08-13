@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bir nechta video uchun mini.py quvurini (1-4 bosqichlar) ketma-ket bajaradi.
+"""Bir nechta video uchun mini.py quvurini (1-3 bosqichlar) ketma-ket bajaradi.
 
 Dastur boshida faqat ikki savol beriladi:
 
@@ -9,12 +9,11 @@ Dastur boshida faqat ikki savol beriladi:
 
 Qolgan hamma qiymat papka nomidan avtomatik aniqlanadi. `docker9` papkasi uchun:
 
-    video_path       : .../docker9/docker9.mp4
-    background_audio : .../docker9/docker9-background.wav
-    background_video : .../docker9/docker9-background.mp4
-    audio_path       : .../docker9/docker9.wav
-    srt_path         : .../docker9/docker9.srt
-    src_language     : en
+    video_path   : .../docker9/docker9.mp4
+    silent_video : .../docker9/docker9-no-audio.mp4
+    audio_path   : .../docker9/docker9.wav
+    srt_path     : .../docker9/docker9.srt
+    src_language : en
 
 Papkalar nomidagi raqam bo'yicha tartiblanadi (docker2 -> docker10 -> docker100),
 shuning uchun "start" qiymati aynan o'sha raqamga qaraydi.
@@ -34,7 +33,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from mini import Answers, is_ready, run
-from step4_generate_srt import DEFAULT_SRC_LANGUAGE
+from step1_remove_audio import OUTPUT_SUFFIX
 from utils import ask_path, ask_text, fail
 
 # Papka ichidagi video shu kengaytmalar bo'yicha qidiriladi (birinchi topilgani olinadi).
@@ -79,13 +78,11 @@ def build_answers(video_path: Path) -> Answers:
     """mini.py kutadigan barcha qiymatlarni video manzilidan hosil qilish."""
     return Answers(
         video_path=video_path,
-        background_audio=video_path.with_name(f"{video_path.stem}-background.wav"),
-        background_video=video_path.with_name(f"{video_path.stem}-background{video_path.suffix}"),
+        silent_video=video_path.with_name(f"{video_path.stem}{OUTPUT_SUFFIX}{video_path.suffix}"),
         audio_path=video_path.with_suffix(".wav"),
         srt_path=video_path.with_suffix(".srt"),
         src_language=SRC_LANGUAGE,
-        # Tayyor fayllar qayta hisoblanmaydi — batch rejimida savol berilmaydi.
-        redo_background=False,
+        # Tayyor .srt qayta hisoblanmaydi — batch rejimida savol berilmaydi.
         redo_srt=False,
     )
 
@@ -122,12 +119,11 @@ def collect_jobs(root: Path, start: int | None) -> list[Job]:
 
 
 def already_done(answers: Answers) -> bool:
-    """To'rt bosqichning barcha natijalari tayyor bo'lsa, papkani o'tkazib yuboramiz."""
+    """Uch bosqichning barcha natijalari tayyor bo'lsa, papkani o'tkazib yuboramiz."""
     return all(
         is_ready(path)
         for path in (
-            answers.background_audio,
-            answers.background_video,
+            answers.silent_video,
             answers.audio_path,
             answers.srt_path,
         )
@@ -157,7 +153,7 @@ def format_duration(seconds: float) -> str:
 
 def main() -> None:
     print("=" * 70)
-    print(" Mini batch: bir nechta video uchun 1-4 bosqichlar")
+    print(" Mini batch: bir nechta video uchun 1-3 bosqichlar")
     print("=" * 70)
 
     if shutil.which("ffmpeg") is None:

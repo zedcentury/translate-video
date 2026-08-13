@@ -1,6 +1,6 @@
 """SRT fayllarni o'qish/yozish uchun umumiy yordamchilar.
 
-2-, 3- va 4-bosqichlar shu modulga tayanadi.
+3-, 4-, 5- va 6-bosqichlar shu modulga tayanadi.
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ class Cue:
         """Boshlanish vaqtidan audio fayl nomi: 00:01:02,500 -> 00-01-02-500
 
         `:` va `,` belgilari fayl nomida muammo tug'dirgani uchun `-` ishlatiladi.
-        5-bosqich audio fayl nomini aynan shu formatda kutadi.
+        6-bosqich audio fayl nomini aynan shu formatda kutadi.
         """
         return ms_to_slug(self.start_ms)
 

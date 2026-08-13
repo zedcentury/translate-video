@@ -1,4 +1,4 @@
-"""6-bosqich: tarjima qilingan .srt dagi matnlarni TTS uchun normalize qilish.
+"""5-bosqich: tarjima qilingan .srt dagi matnlarni TTS uchun normalize qilish.
 
 `uztts.normalize` (navoiy-tts ichida) sonlar, sanalar, vaqt va o'lchov birliklarini
 o'qiladigan so'zlarga aylantiradi:

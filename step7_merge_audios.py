@@ -1,11 +1,13 @@
-"""8-bosqich: audiolarni videoga timestamp bo'yicha biriktirib, yangi video yasash.
+"""7-bosqich: audiolarni videoga timestamp bo'yicha biriktirib, yangi video yasash.
 
 Audio fayl nomining o'zi uning qaysi vaqtda boshlanishini bildiradi:
     00-01-02-500.wav  ->  00:01:02,500 dan boshlab qo'yiladi.
 
-Videoning ovozi saqlanadi — yangi audiolar uning ustiga qo'shiladi. Bu bosqichga
-2-bosqichdan chiqqan video (ovozi nutqsiz fon audiosiga almashtirilgan) beriladi,
-shuning uchun videoning o'z audio oqimining o'zi fon bo'lib xizmat qiladi.
+Bu bosqichga 1-bosqichdan chiqqan OVOZSIZ video (`<nom>-no-audio.mp4`) beriladi,
+shuning uchun natijaviy videoda faqat o'zbekcha audiolar eshitiladi.
+
+Agar audio oqimi bor video berilsa (masalan asl video), uning ovozi ham
+aralashmaga qo'shiladi — balandligi `ORIGINAL_VOLUME` bilan boshqariladi.
 """
 
 from __future__ import annotations
@@ -19,9 +21,9 @@ from utils import ask_path, fail, run_ffmpeg
 
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".aac")
 
-# Fon ovozining balandligi (1.0 — o'zgarishsiz). 1-bosqichda nutq allaqachon
-# olib tashlangani uchun fonni pasaytirish shart emas — faqat musiqa va
-# effektlar qolgan. Musiqa baland tuyulsa, shu qiymatni kamaytiring.
+# Videoning o'z ovozining balandligi (1.0 — o'zgarishsiz). Odatdagi quvurda
+# video 1-bosqichda ovozsiz qilingani uchun bu qiymat ishlatilmaydi; u faqat
+# audio oqimi bor video berilganda hisobga olinadi.
 ORIGINAL_VOLUME = 1.0
 
 # 00-01-02-500 (soat-daqiqa-soniya-millisekund). Ajratuvchi belgi ixtiyoriy,
@@ -39,7 +41,7 @@ def merge_audios(
     """Audiolarni videoga fayl nomidagi vaqt bo'yicha biriktirish.
 
     Args:
-        video_path: Manba video fayl manzili (2-bosqich natijasi). Berilmasa,
+        video_path: Manba video fayl manzili (1-bosqich natijasi). Berilmasa,
             input orqali so'raladi.
         audios_dir: Audiolar joylashgan papka manzili. Berilmasa, input orqali
             so'raladi (default qiymat: video yonidagi `audios` papkasi).
@@ -50,8 +52,8 @@ def merge_audios(
     """
     if video_path is None:
         video_path = ask_path(
-            "Vokal o'chirilgan video fayl manzilini kiriting "
-            "(/path/to/docker/docker-background.mp4)",
+            "Ovozsiz video fayl manzilini kiriting "
+            "(/path/to/docker/docker-no-audio.mp4)",
             must_exist=True,
         )
     video_path = Path(video_path).expanduser().resolve()
@@ -133,19 +135,21 @@ def has_audio_stream(video_path: Path) -> bool:
 def mux(video_path: Path, tracks: list[tuple[int, Path]], output_path: Path) -> None:
     """ffmpeg: har bir audioni `adelay` bilan kechiktirib, `amix` orqali birlashtirish.
 
-    Videoning audio oqimi (nutqsiz fon) ham aralashmaga kiritiladi.
+    Videoda audio oqimi bo'lsa (ya'ni ovozsiz nusxa emas), u ham aralashmaga
+    kiritiladi.
     """
     inputs: list[str] = ["-i", str(video_path)]
     filters: list[str] = []
     labels: list[str] = []
     next_input = 1  # 0 — video
 
-    background_stream = "0:a" if has_audio_stream(video_path) else None
-    if background_stream is None:
-        print("  [ogohlantirish] videoda audio oqimi yo'q — faqat yangi audiolar qo'shiladi.")
+    original_stream = "0:a" if has_audio_stream(video_path) else None
+    if original_stream is None:
+        print("  Video ovozsiz — faqat o'zbekcha audiolar qo'shiladi.")
     else:
-        # Fon ovozini kechiktirish shart emas — u videoning boshidan boshlanadi.
-        filters.append(f"[{background_stream}]volume={ORIGINAL_VOLUME}[orig]")
+        # Asl ovozni kechiktirish shart emas — u videoning boshidan boshlanadi.
+        print(f"  Videoning o'z ovozi ham aralashmaga qo'shiladi (volume={ORIGINAL_VOLUME}).")
+        filters.append(f"[{original_stream}]volume={ORIGINAL_VOLUME}[orig]")
         labels.append("[orig]")
 
     for start_ms, audio_path in tracks:
@@ -170,7 +174,7 @@ def mux(video_path: Path, tracks: list[tuple[int, Path]], output_path: Path) -> 
                 *inputs,
                 "-filter_complex_script", str(script_path),
                 "-map", "0:v",
-                "-map", "[aout]",     # asl ovoz + yangi audiolar aralashmasi
+                "-map", "[aout]",     # yangi audiolar (+ bo'lsa, videoning o'z ovozi)
                 "-c:v", "copy",
                 "-c:a", "aac",
                 "-b:a", "192k",

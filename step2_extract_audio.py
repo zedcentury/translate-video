@@ -1,4 +1,8 @@
-"""3-bosqich: ffmpeg orqali videodan audio qismini ajratib olish."""
+"""2-bosqich: ffmpeg orqali videodan audio qismini ajratib olish.
+
+Bu yerga ASL video beriladi (1-bosqichdagi ovozsiz nusxa emas) — transkripsiya
+uchun nutq faqat asl videoda qolgan.
+"""
 
 from __future__ import annotations
 
