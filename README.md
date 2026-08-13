@@ -1,19 +1,19 @@
 # Video tarjimon: ingliz → o'zbek dublyaj
 
-Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo'ljallangan
-8 bosqichli quvur (pipeline). Har bir bosqich alohida faylda va uni **mustaqil ravishda** ham,
+Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo'ljallangan 8 bosqichli quvur
+(pipeline). Har bir bosqich alohida faylda va uni **mustaqil ravishda** ham,
 `main.py` orqali **ketma-ket** ham ishga tushirish mumkin.
 
-| # | Fayl | Nima qiladi | Vosita |
-|---|------|-------------|--------|
-| 1 | `step1_remove_vocals.py` | Asl ovozdan odam nutqini olib tashlaydi | demucs |
-| 2 | `step2_replace_audio.py` | Video ovozini nutqsiz fonga almashtiradi | ffmpeg |
-| 3 | `step3_extract_audio.py` | Videodan audio ajratib oladi | ffmpeg |
-| 4 | `step4_generate_srt.py` | Audiodan inglizcha `.srt` yasaydi | openai-whisper `large-v3` |
-| 5 | `step5_translate_srt.py` | `.srt` ni o'zbekchaga tarjima qiladi | **qo'lda** (LLM) |
-| 6 | `step6_normalize_srt.py` | Sonlar/sanalarni so'zga aylantiradi, atamalarni almashtiradi | uztts |
-| 7 | `step7_generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi | Navoiy TTS (CosyVoice2) |
-| 8 | `step8_merge_audios.py` | O'zbekcha audiolarni timestamp bo'yicha qo'yadi | ffmpeg |
+| # | Fayl                       | Nima qiladi                                                  | Vosita                    |
+|---|----------------------------|--------------------------------------------------------------|---------------------------|
+| 1 | `step1_remove_vocals.py`   | Asl ovozdan odam nutqini olib tashlaydi                      | demucs                    |
+| 2 | `step2_replace_audio.py`   | Video ovozini nutqsiz fonga almashtiradi                     | ffmpeg                    |
+| 3 | `step3_extract_audio.py`   | Videodan audio ajratib oladi                                 | ffmpeg                    |
+| 4 | `step4_generate_srt.py`    | Audiodan inglizcha `.srt` yasaydi                            | openai-whisper `large-v3` |
+| 5 | `step5_translate_srt.py`   | `.srt` ni o'zbekchaga tarjima qiladi                         | **qo'lda** (LLM)          |
+| 6 | `step6_normalize_srt.py`   | Sonlar/sanalarni so'zga aylantiradi, atamalarni almashtiradi | uztts                     |
+| 7 | `step7_generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi               | Navoiy TTS (CosyVoice2)   |
+| 8 | `step8_merge_audios.py`    | O'zbekcha audiolarni timestamp bo'yicha qo'yadi              | ffmpeg                    |
 
 > **Diqqat:** 3-bosqich transkripsiya uchun **asl** videodan audio oladi (nutq faqat o'sha yerda),
 > 8-bosqich esa 2-bosqichda tayyorlangan **nutqsiz** videoni ishlatadi.
@@ -113,8 +113,8 @@ Shundan keyin dastur o'zi ishlaydi. Faqat quyidagi joylarda to'xtaydi:
 
 ## 3. Bosqichma-bosqich: `/path/to/docker/docker.mp4` misolida
 
-Quyida har bir faylni alohida ishga tushirish tartibi. Barcha savollarda kvadrat qavs ichidagi
-qiymat — default; **Enter** bosish kifoya.
+Quyida har bir faylni alohida ishga tushirish tartibi. Barcha savollarda kvadrat qavs ichidagi qiymat — default;
+**Enter** bosish kifoya.
 
 ### 1-bosqich — nutqni fondan ajratish
 
@@ -149,8 +149,8 @@ Fon audiosi manzilini kiriting [/path/to/docker/docker-background.wav]: ⏎
 Natijaviy video qayerga saqlansin [/path/to/docker/docker-background.mp4]: ⏎
 ```
 
-**Natija:** `/path/to/docker/docker-background.mp4` — tasvir o'zgarmaydi (`-c:v copy`), ovozda esa
-inglizcha nutq qolmagan
+**Natija:** `/path/to/docker/docker-background.mp4` — tasvir o'zgarmaydi (`-c:v copy`), ovozda esa inglizcha nutq
+qolmagan
 
 ---
 
@@ -186,8 +186,7 @@ Audiodagi nutq tili (auto — o'zi aniqlaydi) [en]: ⏎
 Til savolida Enter bosilsa `en` olinadi. Boshqa til uchun `ru`, `uz` kabi kod kiriting;
 `auto` deb yozsangiz, whisper tilni o'zi aniqlaydi.
 
-CPU'da `large-v3` real vaqtdan sekinroq ishlaydi — 30 daqiqalik video ~40-60 daqiqa oladi.
-Tezroq variant:
+CPU'da `large-v3` real vaqtdan sekinroq ishlaydi — 30 daqiqalik video ~40-60 daqiqa oladi. Tezroq variant:
 
 ```bash
 WHISPER_MODEL=large-v3-turbo .venv/bin/python step4_generate_srt.py
@@ -207,14 +206,20 @@ Tarjima qilingan .srt fayl qayerga saqlansin [/path/to/docker/docker-uz.srt]: �
   Tarjima hozircha qo'lda bajariladi. docker-uz.srt tayyormi? [ha/yo'q]:
 ```
 
-Bu paytda `/path/to/docker/docker.srt` faylini Claude / ChatGPT / Gemini ga yuklab, quyidagi prompt bilan
-tarjima qildiring, natijani `/path/to/docker/docker-uz.srt` nomi bilan saqlang, so'ng `ha` deb javob bering:
+Bu paytda `/path/to/docker/docker.srt` faylini Claude / ChatGPT / Gemini ga yuklab, quyidagi prompt bilan tarjima
+qildiring, natijani `/path/to/docker/docker-uz.srt` nomi bilan saqlang, so'ng `ha` deb javob bering:
 
-> Yuklangan .srt faylni o'zbek tiliga (lotin) tarjima qil. Timestamp'lar o'zgarmasin, format
-> saqlansin. Gap yoki atama ikki blokka bo'linib qolgan joylarda bloklarni birlashtirishga ruxsat —
-> birlashgan blok birinchi bo'lakning boshi va oxirgi bo'lakning oxiri vaqtini olsin, keyin qayta
-> raqamla. Texnik atamalar asl holida qolsin. Uslub — jonli, o'qituvchi so'zlayotgandek.
-> Transkripsiya xatolarini to'g'irlab tarjima qil. Natijani .srt fayl ko'rinishida ber.
+```text
+Yuklangan .srt faylni o'zbek tiliga (lotin) tarjima qil. Timestamp'lar o'zgarmasin, format saqlansin. Gap yoki atama ikki blokka bo'linib qolgan joylarda bloklarni birlashtirishga ruxsat — birlashgan blok birinchi bo'lakning boshi va oxirgi bo'lakning oxiri vaqtini olsin, keyin qayta raqamla. Texnik atamalar va ismlar tarjima qilinmasdan, asl inglizcha yozuvida qolsin. Uslub — jonli, o'qituvchi so'zlayotgandek. Transkripsiya xatolarini to'g'irlab tarjima qil. Natijada IKKITA fayl ber:
+
+1. Tarjima qilingan .srt fayl.
+2. .json fayl — tarjimada inglizcha holida qolgan barcha so'zlar lug'ati:
+   * Kalit (key) — srt faylda uchragan aynan o'sha yozuv.
+   * Qiymat (value) — o'sha so'zning o'zbekcha o'qilishi, o'zbek lotin harflarida (inglizcha talaffuzga asoslanib).
+   * Har bir yozuv shakli alohida kalit bo'lsin: "Docker" va "docker" — ikki xil yozuv.
+   * Takrorlanmasin, har bir so'z bir marta. Alifbo tartibida joylashtir.
+   * Faqat toza JSON — izohsiz, markdown belgilarsiz, tekis (nested emas) tuzilishda. Namuna: { "container": "kanteynr", "deploy": "deplo'y", "Docker": "Do'ker", "docker": "do'ker", "Kubernetes": "Kubernits", "kubernetes": "kubernits", "Maximilian": "Maksimillian", "Schwarzmuller": "Shvarzmyuller" }
+```
 
 **Natija:** `/path/to/docker/docker-uz.srt`
 
@@ -236,16 +241,15 @@ Atamalar JSON fayli manzilini kiriting (/path/to/docker/normalize.json) (o'tkazi
 
 Bu bosqich ikki ishni bajaradi:
 
-**1) Sonlar, sanalar va vaqtni so'zga aylantiradi** (`uztts.normalize`) — TTS raqamlarni o'qiy
-olmaydi:
+**1) Sonlar, sanalar va vaqtni so'zga aylantiradi** (`uztts.normalize`) — TTS raqamlarni o'qiy olmaydi:
 
 ```
 Bugun 16.07.2026, soat 14:30 da uchrashamiz.
 → Bugun o'n olti iyul ikki ming yigirma olti, soat o'n to'rt o'ttiz da uchrashamiz.
 ```
 
-**2) Inglizcha atamalarni almashtiradi** (ixtiyoriy) — tarjima qilinmaydigan atamalarni TTS
-noto'g'ri talaffuz qiladi. Ro'yxat JSON faylda beriladi:
+**2) Inglizcha atamalarni almashtiradi** (ixtiyoriy) — tarjima qilinmaydigan atamalarni TTS noto'g'ri talaffuz qiladi.
+Ro'yxat JSON faylda beriladi:
 
 ```json
 {
@@ -281,14 +285,14 @@ Audiolar qaysi papkaga saqlansin [/path/to/docker/audios]: ⏎
 
 **Natija:** `/path/to/docker/audios/00-00-01-500.wav`, `00-00-04-200.wav`, …
 
-Fayl nomi — subtitrning **boshlanish vaqti** (soat-daqiqa-soniya-millisekund). 8-bosqich audioni
-videoga aynan shu nom bo'yicha joylashtiradi, shuning uchun fayllarni qayta nomlamang.
+Fayl nomi — subtitrning **boshlanish vaqti** (soat-daqiqa-soniya-millisekund). 8-bosqich audioni videoga aynan shu nom
+bo'yicha joylashtiradi, shuning uchun fayllarni qayta nomlamang.
 
 Bir necha muhim xususiyat:
 
 - Model **bir marta** yuklanadi, barcha segmentlar shu jarayonda generatsiya qilinadi
-- Papkada tayyor fayl bo'lsa, u qayta generatsiya qilinmaydi (uzilgan jarayonni davom ettirish
-  mumkin). Ovozni butunlay yangilash uchun: `rm -rf /path/to/docker/audios`
+- Papkada tayyor fayl bo'lsa, u qayta generatsiya qilinmaydi (uzilgan jarayonni davom ettirish mumkin). Ovozni butunlay
+  yangilash uchun: `rm -rf /path/to/docker/audios`
 - Audio o'z oralig'iga sig'masa, avtomatik tezlashtiriladi (maksimum 1.5x)
 
 ---
@@ -341,20 +345,20 @@ Kodga tegmasdan, environment o'zgaruvchilari orqali:
 
 ### 4-bosqich (whisper)
 
-| O'zgaruvchi | Default | Izoh |
-|---|---|---|
-| `WHISPER_MODEL` | `large-v3` | `large-v3-turbo` — ~4x tez |
-| `WHISPER_DEVICE` | `cpu` / `cuda` | `mps` ni sinab ko'rish mumkin |
-| `WHISPER_DOWNLOAD_ROOT` | `~/.cache/whisper` | model saqlanadigan papka |
+| O'zgaruvchi             | Default            | Izoh                          |
+|-------------------------|--------------------|-------------------------------|
+| `WHISPER_MODEL`         | `large-v3`         | `large-v3-turbo` — ~4x tez    |
+| `WHISPER_DEVICE`        | `cpu` / `cuda`     | `mps` ni sinab ko'rish mumkin |
+| `WHISPER_DOWNLOAD_ROOT` | `~/.cache/whisper` | model saqlanadigan papka      |
 
 ### 7-bosqich (Navoiy TTS)
 
-| O'zgaruvchi | Default | Izoh |
-|---|---|---|
+| O'zgaruvchi        | Default                     | Izoh                     |
+|--------------------|-----------------------------|--------------------------|
 | `NAVOIY_REFERENCE` | `navoiy-tts/demo/xurmo.wav` | qaysi ovozda gapirilishi |
-| `NAVOIY_EMOTION` | `calm` | hissiyot |
-| `NAVOIY_SPEED` | `1.0` | nutq tezligi |
-| `NAVOIY_SEED` | `1986` | tasodifiylik urug'i |
+| `NAVOIY_EMOTION`   | `calm`                      | hissiyot                 |
+| `NAVOIY_SPEED`     | `1.0`                       | nutq tezligi             |
+| `NAVOIY_SEED`      | `1986`                      | tasodifiylik urug'i      |
 
 Mavjud hissiyotlar: `calm`, `happy`, `excited`, `sad`, `angry`, `nervous`, `scared`,
 `surprised`, `whispers`, `warm`, `gentle`, `tired`, `sighs`, `sarcastic`
@@ -368,19 +372,19 @@ Mavjud ovoz namunalari: `navoiy-tts/demo/` ichida — `xurmo.wav`, `calm_intro.w
 
 ### 1-bosqich (demucs)
 
-| O'zgaruvchi | Default | Izoh |
-|---|---|---|
-| `DEMUCS_MODEL` | `htdemucs` | ajratish modeli |
+| O'zgaruvchi     | Default        | Izoh                      |
+|-----------------|----------------|---------------------------|
+| `DEMUCS_MODEL`  | `htdemucs`     | ajratish modeli           |
 | `DEMUCS_DEVICE` | `cpu` / `cuda` | Apple Silicon uchun `mps` |
 
 ### Kod ichidagi konstantalar
 
-| Fayl | Konstanta | Default | Izoh |
-|---|---|---|---|
-| `step4_generate_srt.py` | `CONDITION_ON_PREVIOUS_TEXT` | `False` | `True` — kontekst yaxshi, lekin takrorlanish xavfi bor |
-| `step7_generate_audios.py` | `FIT_TO_TIMELINE` | `True` | audioni o'z oralig'iga sig'dirish |
-| `step7_generate_audios.py` | `MAX_TEMPO` | `1.5` | maksimal tezlashtirish |
-| `step8_merge_audios.py` | `ORIGINAL_VOLUME` | `1.0` | fon musiqasining balandligi |
+| Fayl                       | Konstanta                    | Default | Izoh                                                   |
+|----------------------------|------------------------------|---------|--------------------------------------------------------|
+| `step4_generate_srt.py`    | `CONDITION_ON_PREVIOUS_TEXT` | `False` | `True` — kontekst yaxshi, lekin takrorlanish xavfi bor |
+| `step7_generate_audios.py` | `FIT_TO_TIMELINE`            | `True`  | audioni o'z oralig'iga sig'dirish                      |
+| `step7_generate_audios.py` | `MAX_TEMPO`                  | `1.5`   | maksimal tezlashtirish                                 |
+| `step8_merge_audios.py`    | `ORIGINAL_VOLUME`            | `1.0`   | fon musiqasining balandligi                            |
 
 ---
 
@@ -397,8 +401,8 @@ NAVOIY_REFERENCE=navoiy-tts/demo/warm_agent.wav .venv/bin/python step7_generate_
 ```
 
 **Fon musiqasi o'zbekcha nutqni bosib ketyapti.**
-`step8_merge_audios.py` da `ORIGINAL_VOLUME` ni `0.6` ga tushiring va 8-bosqichni qayta ishga
-tushiring (u tez ishlaydi — video qayta kodlanmaydi).
+`step8_merge_audios.py` da `ORIGINAL_VOLUME` ni `0.6` ga tushiring va 8-bosqichni qayta ishga tushiring (u tez
+ishlaydi — video qayta kodlanmaydi).
 
 **O'zbekcha nutq keyingi jumla ustiga chiqib ketyapti.**
 O'zbekcha matn inglizchadan uzunroq bo'ladi. `step7_generate_audios.py` da `MAX_TEMPO` ni `1.8`
