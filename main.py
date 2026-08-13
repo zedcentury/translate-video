@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import shutil
 import sys
+import time
 
 from step1_remove_audio import remove_audio
 from step2_extract_audio import extract_audio
@@ -29,7 +30,7 @@ from step4_translate_srt import translate_srt
 from step5_normalize_srt import normalize_srt
 from step6_generate_audios import generate_audios
 from step7_merge_audios import merge_audios
-from utils import ask_path, fail
+from utils import ask_path, fail, format_duration
 
 SRC_LANGUAGE = "en"
 DST_LANGUAGE = "uz"
@@ -46,6 +47,10 @@ def main() -> None:
     video_path = ask_path(
         "Video fayl manzilini kiriting (/path/to/docker/docker.mp4)", must_exist=True
     )
+
+    # Vaqt savollardan keyin o'lchanadi — foydalanuvchi o'ylab turgan vaqt
+    # bosqichlarning davomiyligiga qo'shilib ketmasligi uchun.
+    started_at = time.monotonic()
 
     # Barcha oraliq fayllar video bilan yonma-yon joylashadi.
     audio_path = video_path.with_suffix(".wav")
@@ -88,6 +93,7 @@ def main() -> None:
 
     print("\n" + "=" * 60)
     print(f" Tayyor! Natija: {output_path}")
+    print(f" Umumiy vaqt: {format_duration(time.monotonic() - started_at, full=True)}")
     print("=" * 60)
 
 

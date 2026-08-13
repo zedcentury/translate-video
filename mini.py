@@ -17,13 +17,14 @@ from __future__ import annotations
 
 import shutil
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
 from step1_remove_audio import OUTPUT_SUFFIX, remove_audio
 from step2_extract_audio import extract_audio
 from step3_generate_srt import DEFAULT_SRC_LANGUAGE, generate_srt
-from utils import ask_path, ask_text, ask_yes_no, fail
+from utils import ask_path, ask_text, ask_yes_no, fail, format_duration
 
 
 @dataclass
@@ -119,12 +120,16 @@ def main() -> None:
     print(" Savollar tugadi. Bosqichlar boshlanmoqda...")
     print("-" * 60)
 
+    # Vaqt savollardan keyin o'lchanadi — javob kutilgan vaqt hisobga olinmaydi.
+    started_at = time.monotonic()
     run(answers)
+    elapsed = time.monotonic() - started_at
 
     print("\n" + "=" * 60)
     print(" Tayyor!")
     print(f"   Ovozsiz video : {answers.silent_video}")
     print(f"   Transkripsiya : {answers.srt_path}")
+    print(f"   Umumiy vaqt   : {format_duration(elapsed, full=True)}")
     print("=" * 60)
 
 

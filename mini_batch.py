@@ -34,7 +34,7 @@ from pathlib import Path
 
 from mini import Answers, is_ready, run
 from step1_remove_audio import OUTPUT_SUFFIX
-from utils import ask_path, ask_text, fail
+from utils import ask_path, ask_text, fail, format_duration
 
 # Papka ichidagi video shu kengaytmalar bo'yicha qidiriladi (birinchi topilgani olinadi).
 VIDEO_SUFFIXES = (".mp4", ".mkv", ".mov", ".webm", ".m4v")
@@ -141,16 +141,6 @@ def ask_start() -> int | None:
         print("  Iltimos butun son kiriting (yoki hammasi uchun 0).")
 
 
-def format_duration(seconds: float) -> str:
-    minutes, secs = divmod(int(seconds), 60)
-    hours, minutes = divmod(minutes, 60)
-    if hours:
-        return f"{hours} soat {minutes} daqiqa"
-    if minutes:
-        return f"{minutes} daqiqa {secs} soniya"
-    return f"{secs} soniya"
-
-
 def main() -> None:
     print("=" * 70)
     print(" Mini batch: bir nechta video uchun 1-3 bosqichlar")
@@ -208,17 +198,20 @@ def main() -> None:
         print(f"\n  {job.name} tayyor ({format_duration(time.monotonic() - job_started)}).")
         done.append(job.name)
 
+    elapsed = time.monotonic() - started_at
+
     print("\n" + "=" * 70)
     print(" Hisobot")
     print("=" * 70)
     print(f"  Bajarildi          : {len(done)}")
     print(f"  Oldindan tayyor    : {len(skipped)}")
     print(f"  Xatolik bilan      : {len(failed)}")
-    print(f"  Umumiy vaqt        : {format_duration(time.monotonic() - started_at)}")
     if failed:
         print("\n  Xatoliklar:")
         for name, message in failed:
             print(f"    - {name}: {message}")
+    print("-" * 70)
+    print(f"  Umumiy vaqt: {format_duration(elapsed, full=True)}")
     print("=" * 70)
 
 
