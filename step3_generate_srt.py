@@ -1,15 +1,18 @@
 """3-bosqich: audio fayldan .srt (transkripsiya) generatsiya qilish.
 
-openai-whisper `large-v3` modeli orqali amalga oshiriladi.
+openai-whisper `large-v3-turbo` modeli orqali amalga oshiriladi. Turbo — `large-v3`
+ning qisqartirilgan dekoderli varianti: bir necha barobar tez ishlaydi, transkripsiya
+sifati esa deyarli o'zgarmaydi (u faqat transkripsiya uchun mo'ljallangan, tarjima
+uchun emas — bizda tarjima 4-bosqichda alohida bajariladi).
 
-O'rnatish:
-    pip install openai-whisper
+O'rnatish (turbo uchun kamida 20240930 versiyasi kerak):
+    pip install -U openai-whisper
 
-Model birinchi marta ishlatilganda ~3 GB hajmda yuklab olinadi va
+Model birinchi marta ishlatilganda ~1.6 GB hajmda yuklab olinadi va
 `~/.cache/whisper` papkasida saqlanadi (WHISPER_DOWNLOAD_ROOT orqali o'zgartirsa bo'ladi).
 
 Environment o'zgaruvchilari:
-    WHISPER_MODEL          — model nomi (default: large-v3; tezroq variant: large-v3-turbo)
+    WHISPER_MODEL          — model nomi (default: large-v3-turbo; aniqroq variant: large-v3)
     WHISPER_DEVICE         — cpu / cuda / mps (default: cuda bo'lsa cuda, aks holda cpu)
     WHISPER_DOWNLOAD_ROOT  — model fayllari saqlanadigan papka
 """
@@ -23,7 +26,7 @@ from srt_utils import Cue, write_srt
 from utils import ask_path, ask_text, ask_yes_no, fail
 
 DEFAULT_SRC_LANGUAGE = "en"
-DEFAULT_MODEL = os.environ.get("WHISPER_MODEL", "large-v3")
+DEFAULT_MODEL = os.environ.get("WHISPER_MODEL", "large-v3-turbo")
 
 # Ketma-ket segmentlarni bir-biriga bog'lash kontekstni yaxshilaydi, lekin
 # jimjitlik joylarida modelni "tsikl"ga tushirib, bir xil gapni takrorlab
@@ -49,7 +52,7 @@ def generate_srt(
             (default qiymat: audio bilan yonma-yon, `.srt` kengaytmasi bilan).
         src_language: Audiodagi nutq tili. Berilmasa, input orqali so'raladi
             (default qiymat: "en"). `auto` deb kiritilsa, whisper tilni o'zi aniqlaydi.
-        model_name: whisper modeli (default: "large-v3").
+        model_name: whisper modeli (default: "large-v3-turbo").
 
     Returns:
         Yaratilgan .srt faylning manzili.

@@ -8,7 +8,7 @@ Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo
 |---|----------------------------|--------------------------------------------------------------|---------------------------|
 | 1 | `step1_remove_audio.py`    | Videodan audio qismini butunlay olib tashlaydi               | ffmpeg                    |
 | 2 | `step2_extract_audio.py`   | Asl videodan audio ajratib oladi                             | ffmpeg                    |
-| 3 | `step3_generate_srt.py`    | Audiodan inglizcha `.srt` yasaydi                            | openai-whisper `large-v3` |
+| 3 | `step3_generate_srt.py`    | Audiodan inglizcha `.srt` yasaydi                            | openai-whisper `large-v3-turbo` |
 | 4 | `step4_translate_srt.py`   | `.srt` ni o'zbekchaga tarjima qiladi                         | **qo'lda** (LLM)          |
 | 5 | `step5_normalize_srt.py`   | Sonlar/sanalarni so'zga aylantiradi, atamalarni almashtiradi | uztts                     |
 | 6 | `step6_generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi               | Navoiy TTS (CosyVoice2)   |
@@ -33,8 +33,12 @@ Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo
 ### Python kutubxonalari
 
 ```bash
-.venv/bin/pip install openai-whisper "setuptools<81"
+.venv/bin/pip install -U openai-whisper "setuptools<81"
 ```
+
+> `large-v3-turbo` uchun `openai-whisper` ning kamida **20240930** versiyasi kerak
+> (loyihada `20250625` ishlatilyapti). Eski versiyada `RuntimeError: Model
+> large-v3-turbo not found` chiqadi.
 
 > `setuptools<81` majburiy: yangi versiyalarda `pkg_resources` olib tashlangan, CosyVoice
 > ishlatadigan `lightning` esa unga tayanadi. Aks holda `ModuleNotFoundError: No module named
@@ -44,7 +48,7 @@ Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo
 
 **Avtomatik yuklab olinadi** (birinchi ishga tushirishda):
 
-- **whisper `large-v3`** — ~3 GB, `~/.cache/whisper` ga
+- **whisper `large-v3-turbo`** — ~1.6 GB, `~/.cache/whisper` ga
 
 **Qo'lda yuklab olinadi:**
 
@@ -194,10 +198,12 @@ Audiodagi nutq tili (auto — o'zi aniqlaydi) [en]: ⏎
 Til savolida Enter bosilsa `en` olinadi. Boshqa til uchun `ru`, `uz` kabi kod kiriting;
 `auto` deb yozsangiz, whisper tilni o'zi aniqlaydi.
 
-CPU'da `large-v3` real vaqtdan sekinroq ishlaydi — 30 daqiqalik video ~40-60 daqiqa oladi. Tezroq variant:
+Default model — `large-v3-turbo`: `large-v3` ning qisqartirilgan dekoderli varianti, bir necha
+barobar tez ishlaydi va transkripsiya sifati deyarli o'zgarmaydi. Aniqroq natija kerak bo'lsa
+(masalan sifati past, shovqinli yozuv), to'liq modelga qaytish mumkin:
 
 ```bash
-WHISPER_MODEL=large-v3-turbo .venv/bin/python step3_generate_srt.py
+WHISPER_MODEL=large-v3 .venv/bin/python step3_generate_srt.py
 ```
 
 ---
@@ -354,7 +360,7 @@ Kodga tegmasdan, environment o'zgaruvchilari orqali:
 
 | O'zgaruvchi             | Default            | Izoh                          |
 |-------------------------|--------------------|-------------------------------|
-| `WHISPER_MODEL`         | `large-v3`         | `large-v3-turbo` — ~4x tez    |
+| `WHISPER_MODEL`         | `large-v3-turbo`   | `large-v3` — sekinroq, aniqroq |
 | `WHISPER_DEVICE`        | `cpu` / `cuda`     | `mps` ni sinab ko'rish mumkin |
 | `WHISPER_DOWNLOAD_ROOT` | `~/.cache/whisper` | model saqlanadigan papka      |
 
