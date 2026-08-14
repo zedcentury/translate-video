@@ -216,13 +216,18 @@ alohida ajratilgan, chunki 4-bosqich qo'lda bajariladi.
 
 ```
 Path (video papkalari joylashgan ota papka): /path/to/assets/docker
-Start (masalan 18 -> docker18 dan boshlanadi) [1]: 18
+Start (masalan 18 -> docker18 dan boshlanadi) [1]: 14
+End (masalan 20 -> docker20 gacha, docker20 ham kiradi) [oxirigacha]: 20
 ```
+
+Bu misolda `docker14` dan `docker20` gacha bo'lgan papkalar bajariladi — **ikkala chegara ham ichiga kiradi**.
+`End` savolida Enter bossangiz, oxirigacha davom etadi; `Start` da Enter (yoki `0`) — boshidan.
 
 Har bir papka nomidan uning ichidagi fayllar aniqlanadi (`docker9` → `docker9/docker9.mp4`,
 `docker9-no-audio.mp4`, `docker9.wav`, `docker9.srt`, til `en`). Papkalar nomidagi **raqam**
-bo'yicha tartiblanadi (`docker2` → `docker10` → `docker100`), shuning uchun `Start` aynan shu raqamga qaraydi. Uch
-natijasi ham tayyor papka o'tkazib yuboriladi, bitta video xato bersa quvur to'xtamaydi — oxirida hisobot chiqadi.
+bo'yicha tartiblanadi (`docker2` → `docker10` → `docker100`), shuning uchun `Start` va `End` aynan shu raqamga
+qaraydi. Uch natijasi ham tayyor papka o'tkazib yuboriladi, bitta video xato bersa quvur to'xtamaydi — oxirida
+hisobot chiqadi.
 
 ---
 

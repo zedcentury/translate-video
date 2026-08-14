@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Bir nechta video uchun pipelines/prepare.py quvurini ketma-ket bajaradi.
 
-Dastur boshida faqat ikki savol beriladi:
+Dastur boshida faqat uch savol beriladi:
 
     1. Path       — ichida video papkalari joylashgan ota papka
                     (masalan: /Users/.../assets/docker)
     2. Start      — necha raqamdan boshlansin (masalan 18 -> docker18 dan)
+    3. End        — qaysi raqamgacha (masalan 20 -> docker20 gacha, docker20 ham
+                    bajariladi). Bo'sh qoldirilsa, oxirigacha davom etadi.
 
 Qolgan hamma qiymat papka nomidan avtomatik aniqlanadi. `docker9` papkasi uchun:
 
@@ -16,7 +18,7 @@ Qolgan hamma qiymat papka nomidan avtomatik aniqlanadi. `docker9` papkasi uchun:
     src_language : en
 
 Papkalar nomidagi raqam bo'yicha tartiblanadi (docker2 -> docker10 -> docker100),
-shuning uchun "start" qiymati aynan o'sha raqamga qaraydi.
+shuning uchun "start" va "end" qiymatlari aynan o'sha raqamga qaraydi.
 
 Bosqichlar boshlangandan keyin dastur hech narsa so'ramaydi. Bitta video xato
 bersa, quvur to'xtamaydi — xato yozib qo'yiladi va keyingi videoga o'tiladi;
@@ -93,8 +95,12 @@ def build_answers(video_path: Path) -> Answers:
     )
 
 
-def collect_jobs(root: Path, start: int | None) -> list[Job]:
-    """Ota papka ichidagi ishlarni yig'ib, raqam bo'yicha tartiblash."""
+def collect_jobs(root: Path, start: int | None, end: int | None) -> list[Job]:
+    """Ota papka ichidagi ishlarni yig'ib, raqam bo'yicha tartiblash.
+
+    `start` va `end` — papka nomidagi raqam bo'yicha chegara. Ikkalasi ham
+    ichiga oladi: start=14, end=20 bo'lsa, docker14 va docker20 ham bajariladi.
+    """
     jobs: list[Job] = []
     skipped: list[str] = []
 
@@ -105,11 +111,13 @@ def collect_jobs(root: Path, start: int | None) -> list[Job]:
             continue
 
         number = folder_number(folder)
-        if start is not None:
+        if start is not None or end is not None:
             if number is None:
                 skipped.append(f"{folder.name} (nomida raqam yo'q)")
                 continue
-            if number < start:
+            if start is not None and number < start:
+                continue
+            if end is not None and number > end:
                 continue
 
         jobs.append(Job(folder=folder, number=number, video_path=video_path))
@@ -147,6 +155,27 @@ def ask_start() -> int | None:
         print("  Iltimos butun son kiriting (yoki hammasi uchun 0).")
 
 
+def ask_end(start: int | None) -> int | None:
+    """Tugash raqamini so'rash. Bo'sh Enter — oxirigacha davom etadi.
+
+    Kiritilgan qiymat ham bajariladi: end=20 bo'lsa, docker20 ham ishlanadi.
+    """
+    while True:
+        raw = ask_text("End (masalan 20 -> docker20 gacha, docker20 ham kiradi)", default="oxirigacha")
+        raw = raw.strip()
+        if raw.lower() in {"", "0", "oxirigacha", "oxiri", "hammasi", "all"}:
+            return None
+        if not raw.isdigit():
+            print("  Iltimos butun son kiriting (yoki oxirigacha uchun Enter).")
+            continue
+
+        end = int(raw)
+        if start is not None and end < start:
+            print(f"  End qiymati Start ({start}) dan kichik bo'lmasligi kerak.")
+            continue
+        return end
+
+
 def main() -> None:
     print("=" * 70)
     print(" Batch tayyorgarlik: bir nechta video uchun 1-3 bosqichlar")
@@ -161,14 +190,16 @@ def main() -> None:
         must_be_dir=True,
     )
     start = ask_start()
+    end = ask_end(start)
 
-    jobs = collect_jobs(root, start)
+    jobs = collect_jobs(root, start, end)
     if not jobs:
-        fail(f"{root} ichidan mos video papkasi topilmadi.")
+        fail(f"{root} ichidan mos video papkasi topilmadi (start={start}, end={end}).")
 
+    oraliq = f"{start if start is not None else 'boshidan'} - {end if end is not None else 'oxirigacha'}"
     print("\n" + "-" * 70)
     print(f" {len(jobs)} ta video topildi: {jobs[0].name} ... {jobs[-1].name}")
-    print(f" Til: {SRC_LANGUAGE} | Boshlanish: {start if start is not None else 'boshidan'}")
+    print(f" Til: {SRC_LANGUAGE} | Oraliq: {oraliq}")
     print("-" * 70)
 
     done: list[str] = []
