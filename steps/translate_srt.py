@@ -78,6 +78,24 @@ def translate_srt(
     dst_language: str = DEFAULT_DST_LANGUAGE,
     redo: bool | None = None,
 ) -> Path:
+    """.srt ni tarjima qilib, natija faylning manzilini qaytarish.
+
+    Batafsil natija (holat va narx) kerak bo'lsa, `translate_srt_detailed` ni
+    ishlating — bu funksiya o'shaning qisqa ko'rinishi.
+    """
+    path, _status, _cost = translate_srt_detailed(
+        srt_path, translated_srt_path, src_language, dst_language, redo
+    )
+    return path
+
+
+def translate_srt_detailed(
+    srt_path: str | Path | None = None,
+    translated_srt_path: str | Path | None = None,
+    src_language: str = DEFAULT_SRC_LANGUAGE,
+    dst_language: str = DEFAULT_DST_LANGUAGE,
+    redo: bool | None = None,
+) -> tuple[Path, str, float]:
     """.srt fayldagi matnlarni tarjima qilib, yangi .srt fayl yaratish.
 
     Args:
@@ -92,7 +110,8 @@ def translate_srt(
             o'rtasida savol berilib qoladi.
 
     Returns:
-        Tarjima qilingan .srt faylning manzili.
+        (manzil, holat, narx) — holat "ok" yoki "skipped" (mavjud fayl ishlatildi),
+        narx esa shu chaqiruvga ketgan dollar (o'tkazib yuborilganda 0.0).
     """
     if srt_path is None:
         srt_path = ask_path("Tarjima qilinadigan .srt fayl manzilini kiriting", must_exist=True)
@@ -120,7 +139,7 @@ def translate_srt(
             )
         if not redo:
             print("  Mavjud fayl ishlatildi.")
-            return translated_srt_path
+            return translated_srt_path, "skipped", 0.0
 
     if shutil.which("claude") is None:
         fail(
@@ -160,7 +179,7 @@ def translate_srt(
             f"  [ogohlantirish] tarjimada bloklar ko'paydi ({len(cues)} -> {len(translated)}), "
             f"faylni ko'zdan kechiring."
         )
-    return translated_srt_path
+    return translated_srt_path, "ok", cost
 
 
 def run_claude(prompt: str) -> tuple[str, float]:

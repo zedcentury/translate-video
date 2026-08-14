@@ -34,7 +34,8 @@ modes/        ← tayyor rejimlar: butun quvurni ma'lum bir video turi uchun baj
 pipelines/    ← bir nechta bosqichni ketma-ket bajaradigan qisqartirilgan quvurlar
 │             prepare.py — tarjimadan oldingi tayyorgarlik (1-3 bosqichlar)
 batches/      ← bir nechta video uchun quvurlarni ketma-ket ishga tushiruvchi kodlar
-│             prepare_batch.py — prepare.py ni papkadagi hamma video uchun bajaradi
+│             prepare_batch.py   — prepare.py ni papkadagi hamma video uchun bajaradi
+│             translate_batch.py — 4-bosqichni (tarjima) hamma .srt uchun bajaradi
 utils/        ← umumiy yordamchilar: common.py (savollar, ffmpeg, vaqt), srt.py, locate_videos.py
 assets/       ← videolar va ular yonidagi oraliq fayllar
 ```
@@ -230,6 +231,39 @@ Har bir papka nomidan uning ichidagi fayllar aniqlanadi (`docker9` → `docker9/
 bo'yicha tartiblanadi (`docker2` → `docker10` → `docker100`), shuning uchun `Start` va `End` aynan shu raqamga
 qaraydi. Uch natijasi ham tayyor papka o'tkazib yuboriladi, bitta video xato bersa quvur to'xtamaydi — oxirida
 hisobot chiqadi.
+
+---
+
+## 2.2. Ko'p `.srt` ni tarjima qilish: `batches/translate_batch.py`
+
+Tayyorgarlikdan keyingi qadam — 4-bosqichni (tarjima) bir necha papka uchun birdan bajarish:
+
+```bash
+.venv/bin/python batches/translate_batch.py
+```
+
+```
+Path (video papkalari joylashgan ota papka): /path/to/assets/docker
+Start (masalan 14 -> docker14 dan boshlanadi) [1]: 14
+End (masalan 20 -> docker20 gacha, docker20 ham kiradi) [oxirigacha]: 20
+Qaysi tildan (til kodi) [en]: ⏎
+Qaysi tilga (til kodi) [uz]: ⏎
+```
+
+Ichki papkalar nomi **ota papka nomidan** aniqlanadi (`docker` → `docker1`, `docker2`, ...), har birida
+`<papka nomi>.srt` qidiriladi va yoniga `<papka nomi>-uz.srt` yoziladi:
+
+```
+docker14/docker14.srt  ->  docker14/docker14-uz.srt
+docker15/docker15.srt  ->  docker15/docker15-uz.srt
+```
+
+- Tarjima allaqachon mavjud papka **o'tkazib yuboriladi** — har bir chaqiruv pullik. Qayta tarjima kerak bo'lsa,
+  eski `-uz.srt` ni o'chiring.
+- Bitta fayl xato bersa quvur to'xtamaydi; oxirida hisobot, **jami narx** va umumiy vaqt chiqadi.
+- Nomi ota papka nomi bilan boshlanmaydigan yoki ichida `.srt` bo'lmagan papkalar boshida ro'yxat qilib
+  ko'rsatiladi.
+- Fayllar ketma-ket tarjima qilinadi (bir vaqtda bittadan).
 
 ---
 
