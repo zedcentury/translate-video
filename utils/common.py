@@ -7,6 +7,30 @@ from pathlib import Path
 from typing import NoReturn
 
 
+def format_duration(seconds: float, full: bool = False) -> str:
+    """Soniyalarni "1 soat 5 daqiqa 9 soniya" ko'rinishiga aylantirish.
+
+    Args:
+        seconds: O'tgan vaqt (soniyalarda).
+        full: True bo'lsa, nol bo'lgan qismlar ham chiqadi
+            ("0 soat 0 daqiqa 9 soniya") — yakuniy hisobot uchun qulay.
+    """
+    total = int(seconds)
+    hours, rem = divmod(total, 3600)
+    minutes, secs = divmod(rem, 60)
+
+    if full:
+        return f"{hours} soat {minutes} daqiqa {secs} soniya"
+
+    parts: list[str] = []
+    if hours:
+        parts.append(f"{hours} soat")
+    if minutes or hours:
+        parts.append(f"{minutes} daqiqa")
+    parts.append(f"{secs} soniya")
+    return " ".join(parts)
+
+
 def fail(message: str) -> NoReturn:
     """Xatolik xabarini chiqarib, dasturni to'xtatish."""
     raise SystemExit(f"\n[XATOLIK] {message}")

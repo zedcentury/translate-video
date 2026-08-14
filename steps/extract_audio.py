@@ -1,10 +1,18 @@
-"""3-bosqich: ffmpeg orqali videodan audio qismini ajratib olish."""
+"""2-bosqich: ffmpeg orqali videodan audio qismini ajratib olish.
+
+Bu yerga ASL video beriladi (1-bosqichdagi ovozsiz nusxa emas) — transkripsiya
+uchun nutq faqat asl videoda qolgan.
+"""
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
-from utils import ask_path, fail, run_ffmpeg
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from utils.common import ask_path, fail, run_ffmpeg  # noqa: E402
 
 
 def extract_audio(video_path: str | Path | None = None, audio_path: str | Path | None = None) -> Path:

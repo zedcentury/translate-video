@@ -1,4 +1,4 @@
-"""7-bosqich: tarjima qilingan .srt dagi har bir matnni audioga o'girish.
+"""6-bosqich: tarjima qilingan .srt dagi har bir matnni audioga o'girish.
 
 Navoiy TTS (CosyVoice2 runtime) orqali amalga oshiriladi. Ya'ni quyidagi
 buyruqning dasturiy ko'rinishi:
@@ -15,7 +15,7 @@ jarayonda generatsiya qilinadi (har bir segment uchun alohida jarayon
 ochilsa, 0.5B model qayta-qayta yuklanib, vaqt bir necha barobar oshib ketardi).
 
 Fayl nomi timestamp dagi boshlanish vaqti bo'yicha beriladi (00-01-02-500.wav),
-chunki 8-bosqich audioni videoga aynan fayl nomidagi vaqt bo'yicha biriktiradi.
+chunki 7-bosqich audioni videoga aynan fayl nomidagi vaqt bo'yicha biriktiradi.
 
 Environment o'zgaruvchilari:
     NAVOIY_REFERENCE   — ovoz namunasi (default: navoiy-tts/demo/xurmo.wav)
@@ -33,10 +33,12 @@ import sys
 import time
 from pathlib import Path
 
-from srt_utils import parse_srt
-from utils import ask_path, fail
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
-ROOT = Path(__file__).resolve().parent
+from utils.common import ask_path, fail  # noqa: E402
+from utils.srt import parse_srt  # noqa: E402
 
 COSYVOICE_DIR = Path(os.environ.get("COSYVOICE_DIR", ROOT / "CosyVoice"))
 BASE_MODEL_DIR = Path(
@@ -54,8 +56,8 @@ DEFAULT_SEED = int(os.environ.get("NAVOIY_SEED", "1986"))
 SAMPLE_RATE = 24000
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".aac")
 
-# Matnni normalize qilish 6-bosqichga ko'chirildi (step6_normalize_srt.py), shuning
-# uchun bu yerda takroran normalize qilinmaydi — aks holda 6-bosqichda almashtirilgan
+# Matnni normalize qilish 5-bosqichga ko'chirildi (steps/normalize_srt.py), shuning
+# uchun bu yerda takroran normalize qilinmaydi — aks holda 5-bosqichda almashtirilgan
 # atamalar yana o'zgarib ketishi mumkin. Agar bu bosqichga normalize qilinmagan .srt
 # berilsa, True qilib qo'yish kerak.
 NORMALIZE_TEXT = False
@@ -79,7 +81,7 @@ def generate_audios(
     """Normalize qilingan .srt dagi har bir matn uchun alohida audio fayl yaratish.
 
     Args:
-        normalized_srt_path: Normalize qilingan .srt fayl manzili (6-bosqich
+        normalized_srt_path: Normalize qilingan .srt fayl manzili (5-bosqich
             natijasi). Berilmasa, input orqali so'raladi.
         audios_dir: Audiolar saqlanadigan papka manzili. Berilmasa, input orqali
             so'raladi (default qiymat: .srt fayl yonidagi `audios` papkasi).
