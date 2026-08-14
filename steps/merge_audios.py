@@ -3,11 +3,15 @@
 Audio fayl nomining o'zi uning qaysi vaqtda boshlanishini bildiradi:
     00-01-02-500.wav  ->  00:01:02,500 dan boshlab qo'yiladi.
 
-Bu bosqichga 1-bosqichdan chiqqan OVOZSIZ video (`<nom>-no-audio.mp4`) beriladi,
-shuning uchun natijaviy videoda faqat o'zbekcha audiolar eshitiladi.
+Bu bosqichga 1-bosqichdan chiqqan video beriladi:
+    `<nom>-no-audio.mp4`       — ovozsiz (course rejimi), natijada faqat o'zbekcha nutq;
+    `<nom>-removed-vocal.mp4`  — fon ovozi qolgan (movie rejimi), u ham aralashmaga tushadi.
 
-Agar audio oqimi bor video berilsa (masalan asl video), uning ovozi ham
-aralashmaga qo'shiladi — balandligi `ORIGINAL_VOLUME` bilan boshqariladi.
+Natija: `<nom>-result.mp4` — nom asl video nomidan olinadi, ya'ni yuqoridagi
+qo'shimchalar tashlab yuboriladi (`docker9-no-audio.mp4` -> `docker9-result.mp4`).
+
+Audio oqimi bor video berilganda uning ovozi aralashmaga qo'shiladi — balandligi
+`ORIGINAL_VOLUME` bilan boshqariladi.
 """
 
 from __future__ import annotations
@@ -24,6 +28,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.common import ask_path, fail, run_ffmpeg  # noqa: E402
 
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".aac")
+
+# Yakuniy video nomiga qo'shiladigan qo'shimcha: docker9 -> docker9-result
+OUTPUT_SUFFIX = "-result"
+
+# Manba video 1-bosqich natijasi bo'lgani uchun nomida shu qo'shimchalar turadi.
+# Yakuniy nom asl video nomidan hosil bo'lishi uchun ularni olib tashlaymiz:
+#   docker9-no-audio.mp4 -> docker9-result.mp4
+STEP1_SUFFIXES = ("-no-audio", "-removed-vocal")
 
 # Videoning o'z ovozining balandligi (1.0 — o'zgarishsiz). Odatdagi quvurda
 # video 1-bosqichda ovozsiz qilingani uchun bu qiymat ishlatilmaydi; u faqat
@@ -49,7 +61,8 @@ def merge_audios(
             input orqali so'raladi.
         audios_dir: Audiolar joylashgan papka manzili. Berilmasa, input orqali
             so'raladi (default qiymat: video yonidagi `audios` papkasi).
-        output_path: Natijaviy video manzili. Berilmasa, `<nom>-uz.<kengaytma>`.
+        output_path: Natijaviy video manzili. Berilmasa, `<nom>-result.<kengaytma>`
+            (`<nom>` — 1-bosqich qo'shimchasisiz, ya'ni asl video nomi).
 
     Returns:
         Yaratilgan video faylning manzili.
@@ -76,7 +89,7 @@ def merge_audios(
         fail(f"Papka topilmadi: {audios_dir}")
 
     if output_path is None:
-        output_path = video_path.with_name(f"{video_path.stem}-uz{video_path.suffix}")
+        output_path = video_path.with_name(f"{base_stem(video_path)}{OUTPUT_SUFFIX}{video_path.suffix}")
     output_path = Path(output_path).expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -90,6 +103,15 @@ def merge_audios(
 
     mux(video_path, tracks, output_path)
     return output_path
+
+
+def base_stem(video_path: Path) -> str:
+    """1-bosqich qo'shgan qo'shimchani olib tashlab, asl video nomini qaytarish."""
+    stem = video_path.stem
+    for suffix in STEP1_SUFFIXES:
+        if stem.endswith(suffix):
+            return stem[: -len(suffix)]
+    return stem
 
 
 def collect_tracks(audios_dir: Path) -> list[tuple[int, Path]]:

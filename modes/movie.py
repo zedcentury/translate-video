@@ -43,6 +43,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from steps.extract_audio import extract_audio  # noqa: E402
 from steps.generate_audios import generate_audios  # noqa: E402
 from steps.generate_srt import generate_srt  # noqa: E402
+from steps.merge_audios import OUTPUT_SUFFIX as RESULT_SUFFIX  # noqa: E402
 from steps.merge_audios import merge_audios  # noqa: E402
 from steps.normalize_srt import normalize_srt  # noqa: E402
 from steps.remove_vocals import OUTPUT_SUFFIX, remove_vocals  # noqa: E402
@@ -76,7 +77,7 @@ def main() -> None:
     normalized_srt_path = video_path.with_name(f"{video_path.stem}-{DST_LANGUAGE}-normalized.srt")
     audios_dir = video_path.parent / "audios"
     background_video = video_path.with_name(f"{video_path.stem}{OUTPUT_SUFFIX}{video_path.suffix}")
-    output_path = video_path.with_name(f"{video_path.stem}-{DST_LANGUAGE}{video_path.suffix}")
+    output_path = video_path.with_name(f"{video_path.stem}{RESULT_SUFFIX}{video_path.suffix}")
 
     print("\n[1/7] Videodan odam nutqi olib tashlanmoqda (fon ovozi qoladi)...")
     background_video = remove_vocals(video_path, background_video)

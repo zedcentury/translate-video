@@ -146,7 +146,7 @@ Rejim barcha bosqichlarni ketma-ket bajaradi va faqat kerakli joyda savol beradi
 [4/7] steps/translate_srt.py     docker.srt                 -> docker-uz.srt            (qo'lda)
 [5/7] steps/normalize_srt.py     docker-uz.srt              -> docker-uz-normalized.srt
 [6/7] steps/generate_audios.py   docker-uz-normalized.srt   -> audios/*.wav
-[7/7] steps/merge_audios.py      docker-no-audio.mp4 + audios/  -> docker-uz.mp4
+[7/7] steps/merge_audios.py      docker-no-audio.mp4 + audios/  -> docker-result.mp4
 ```
 
 Yakuniy videoda faqat o'zbekcha nutq eshitiladi — asl ovozdan hech narsa qolmaydi.
@@ -166,7 +166,7 @@ Yakuniy videoda faqat o'zbekcha nutq eshitiladi — asl ovozdan hech narsa qolma
 [4/7] steps/translate_srt.py     movie.srt                  -> movie-uz.srt             (qo'lda)
 [5/7] steps/normalize_srt.py     movie-uz.srt               -> movie-uz-normalized.srt
 [6/7] steps/generate_audios.py   movie-uz-normalized.srt    -> audios/*.wav
-[7/7] steps/merge_audios.py      movie-removed-vocal.mp4 + audios/  -> movie-uz.mp4
+[7/7] steps/merge_audios.py      movie-removed-vocal.mp4 + audios/  -> movie-result.mp4
 ```
 
 Farqi faqat **1-bosqichda**: `remove_vocals.py` audio oqimini tashlamaydi, balki demucs orqali undan odam
@@ -433,12 +433,13 @@ Ovozsiz video fayl manzilini kiriting (/path/to/docker/docker-no-audio.mp4): /pa
 Audiolar joylashgan papka manzilini kiriting [/path/to/docker/audios]: ⏎
 ```
 
-> **Diqqat:** bu yerda asl `video.mp4` emas, 1-bosqichdan chiqqan `video-no-audio.mp4`
-> berilishi kerak. Aks holda inglizcha nutq qaytib qo'shiladi.
+> **Diqqat:** bu yerda asl `video.mp4` emas, 1-bosqichdan chiqqan `video-no-audio.mp4` (yoki `movie.py` da
+> `video-removed-vocal.mp4`) berilishi kerak. Aks holda inglizcha nutq qaytib qo'shiladi.
 
-**Natija:** `/path/to/docker/docker-no-audio-uz.mp4` — tayyor dublyaj qilingan video
+**Natija:** `/path/to/docker/docker-result.mp4` — tayyor dublyaj qilingan video
 
-> `modes/course.py` orqali ishlatilganda natija `/path/to/docker/docker-uz.mp4` deb nomlanadi.
+> Nom asl video nomidan hosil bo'ladi: `-no-audio` va `-removed-vocal` qo'shimchalari tashlab yuborilib,
+> o'rniga `-result` qo'yiladi (`docker-no-audio.mp4` → `docker-result.mp4`). Rejimlar ham xuddi shu nomni beradi.
 
 ---
 
@@ -458,7 +459,7 @@ Audiolar joylashgan papka manzilini kiriting [/path/to/docker/audios]: ⏎
 ├── audios/                    ← 6-bosqich
 │   ├── 00-00-01-500.wav
 │   └── 00-00-04-200.wav
-└── docker-uz.mp4              ← 7-bosqich (NATIJA)
+└── docker-result.mp4          ← 7-bosqich (NATIJA)
 ```
 
 `modes/movie.py` da bitta fayl boshqacha nomlanadi: `docker-no-audio.mp4` o'rniga

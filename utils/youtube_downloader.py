@@ -23,6 +23,7 @@ try:
 except ImportError:
     sys.exit("Xatolik: yt-dlp o'rnatilmagan.\nO'rnatish uchun: pip install yt-dlp")
 
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 
@@ -76,7 +77,7 @@ def collect_qualities(info):
     best_by_height = {}
 
     for fmt in info.get("formats", []):
-        if fmt.get("vcodec") in (None, "none"):  # faqat audio - o'tkazib yuboramiz
+        if fmt.get("vcodec") in (None, "none"):      # faqat audio - o'tkazib yuboramiz
             continue
         height = fmt.get("height")
         if not height:
@@ -144,10 +145,25 @@ def ask_quality(qualities, merge_ok):
             continue
         num = int(choice)
         if num == audio_index:
-            return None  # audio rejimi
+            return None                      # audio rejimi
         if 1 <= num <= len(qualities):
             return qualities[num - 1]
         print(f"  1 dan {audio_index} gacha bo'lgan raqamni kiriting.")
+
+
+def ask_thumbnail():
+    """3-input: thumbnail ham yuklab olinsinmi? Default javob - yo'q."""
+    while True:
+        answer = input("\nVideo thumbnail'i ham yuklab olinsinmi? (ha/yo'q) [yo'q]: ").strip().lower()
+
+        if answer == "":                                  # Enter bosilsa - default
+            return False
+        if answer in ("h", "ha", "y", "yes", "ok"):
+            return True
+        if answer in ("y'", "yo", "yoq", "yo'q", "n", "no"):
+            return False
+
+        print("  'ha' yoki 'yo'q' deb javob bering (Enter - yo'q).")
 
 
 # -------------------------------------------------------------------- yuklash
@@ -162,7 +178,7 @@ def progress_hook(d):
         print("\r  Yuklab olindi, fayl tayyorlanmoqda...          ")
 
 
-def download(url, quality, merge_ok):
+def download(url, quality, merge_ok, want_thumbnail=False):
     os.makedirs(ASSETS_DIR, exist_ok=True)
 
     opts = {
@@ -171,18 +187,31 @@ def download(url, quality, merge_ok):
         "progress_hooks": [progress_hook],
         "quiet": True,
         "no_warnings": True,
-        "restrictfilenames": True,  # fayl nomidagi maxsus belgilarni tozalaydi
+        "restrictfilenames": True,   # fayl nomidagi maxsus belgilarni tozalaydi
     }
+
+    postprocessors = []
+
+    if want_thumbnail:
+        # Thumbnail video bilan bir xil nom ostida alohida rasm fayli sifatida saqlanadi
+        opts["writethumbnail"] = True
+        if merge_ok:
+            # YouTube ko'pincha .webp beradi - ffmpeg bo'lsa .jpg ga o'giramiz
+            postprocessors.append({
+                "key": "FFmpegThumbnailsConvertor",
+                "format": "jpg",
+                "when": "before_dl",
+            })
 
     if quality is None:
         # Faqat audio
         opts["format"] = "bestaudio/best"
         if merge_ok:
-            opts["postprocessors"] = [{
+            postprocessors.append({
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": "mp3",
                 "preferredquality": "192",
-            }]
+            })
     else:
         height = quality["height"]
         if merge_ok:
@@ -195,6 +224,9 @@ def download(url, quality, merge_ok):
         else:
             # ffmpeg yo'q — audio bilan birga kelgan yagona faylni olamiz
             opts["format"] = f"best[height<={height}]"
+
+    if postprocessors:
+        opts["postprocessors"] = postprocessors
 
     with YoutubeDL(opts) as ydl:
         ydl.download([url])
@@ -230,12 +262,14 @@ def main():
 
     merge_ok = has_ffmpeg()
     quality = ask_quality(qualities, merge_ok)
+    want_thumbnail = ask_thumbnail()
 
     label = "audio (mp3)" if quality is None else f"{quality['height']}p"
-    print(f"\n'{label}' sifatida yuklab olinmoqda...\n")
+    extra = " + thumbnail" if want_thumbnail else ""
+    print(f"\n'{label}{extra}' yuklab olinmoqda...\n")
 
     try:
-        download(url, quality, merge_ok)
+        download(url, quality, merge_ok, want_thumbnail)
     except DownloadError as e:
         sys.exit(f"\nYuklashda xatolik: {e}")
     except KeyboardInterrupt:
