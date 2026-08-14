@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bir nechta video uchun mini.py quvurini (1-3 bosqichlar) ketma-ket bajaradi.
+"""Bir nechta video uchun pipelines/prepare.py quvurini ketma-ket bajaradi.
 
 Dastur boshida faqat ikki savol beriladi:
 
@@ -21,6 +21,9 @@ shuning uchun "start" qiymati aynan o'sha raqamga qaraydi.
 Bosqichlar boshlangandan keyin dastur hech narsa so'ramaydi. Bitta video xato
 bersa, quvur to'xtamaydi — xato yozib qo'yiladi va keyingi videoga o'tiladi;
 oxirida umumiy hisobot chiqadi.
+
+Ishga tushirish (loyiha ildizidan):
+    python batches/prepare_batch.py
 """
 
 from __future__ import annotations
@@ -32,9 +35,12 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from mini import Answers, is_ready, run
-from step1_remove_audio import OUTPUT_SUFFIX
-from utils import ask_path, ask_text, fail, format_duration
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from pipelines.prepare import Answers, is_ready, run  # noqa: E402
+from steps.remove_audio import OUTPUT_SUFFIX  # noqa: E402
+from utils.common import ask_path, ask_text, fail, format_duration  # noqa: E402
 
 # Papka ichidagi video shu kengaytmalar bo'yicha qidiriladi (birinchi topilgani olinadi).
 VIDEO_SUFFIXES = (".mp4", ".mkv", ".mov", ".webm", ".m4v")
@@ -42,7 +48,7 @@ VIDEO_SUFFIXES = (".mp4", ".mkv", ".mov", ".webm", ".m4v")
 # Papka nomining oxiridagi raqamni ajratib olish: "docker18" -> 18
 TRAILING_NUMBER = re.compile(r"(\d+)$")
 
-# Bu papkalar uchun default til (mini.py da har safar so'raladigan qiymat).
+# Bu papkalar uchun default til (prepare.py da har safar so'raladigan qiymat).
 SRC_LANGUAGE = "en"
 
 
@@ -75,7 +81,7 @@ def find_video(folder: Path) -> Path | None:
 
 
 def build_answers(video_path: Path) -> Answers:
-    """mini.py kutadigan barcha qiymatlarni video manzilidan hosil qilish."""
+    """prepare.py kutadigan barcha qiymatlarni video manzilidan hosil qilish."""
     return Answers(
         video_path=video_path,
         silent_video=video_path.with_name(f"{video_path.stem}{OUTPUT_SUFFIX}{video_path.suffix}"),
@@ -143,7 +149,7 @@ def ask_start() -> int | None:
 
 def main() -> None:
     print("=" * 70)
-    print(" Mini batch: bir nechta video uchun 1-3 bosqichlar")
+    print(" Batch tayyorgarlik: bir nechta video uchun 1-3 bosqichlar")
     print("=" * 70)
 
     if shutil.which("ffmpeg") is None:

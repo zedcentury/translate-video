@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
-"""Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish.
+"""Kurs videolari uchun rejim: ingliz tilidagi videoni o'zbekcha dublyajga o'tkazish.
 
 Bosqichlar ketma-ketligi:
-    1. step1_remove_audio    — videodan audio qismini olib tashlash (ffmpeg)
-    2. step2_extract_audio   — ASL videodan audio ajratib olish (ffmpeg)
-    3. step3_generate_srt    — audiodan .srt transkripsiya (openai-whisper)
-    4. step4_translate_srt   — .srt ni tarjima qilish (LLM — rejada)
-    5. step5_normalize_srt   — matnlarni TTS uchun normalize qilish (uztts)
-    6. step6_generate_audios — tarjimadagi matnlarni audioga o'girish (Navoiy TTS)
-    7. step7_merge_audios    — audiolarni videoga timestamp bo'yicha biriktirish (ffmpeg)
+    1. steps/remove_audio    — videodan audio qismini olib tashlash (ffmpeg)
+    2. steps/extract_audio   — ASL videodan audio ajratib olish (ffmpeg)
+    3. steps/generate_srt    — audiodan .srt transkripsiya (openai-whisper)
+    4. steps/translate_srt   — .srt ni tarjima qilish (LLM — rejada)
+    5. steps/normalize_srt   — matnlarni TTS uchun normalize qilish (uztts)
+    6. steps/generate_audios — tarjimadagi matnlarni audioga o'girish (Navoiy TTS)
+    7. steps/merge_audios    — audiolarni videoga timestamp bo'yicha biriktirish (ffmpeg)
 
 Diqqat: 2-bosqich transkripsiya uchun ASL videodan audio oladi (nutq o'sha yerda),
 7-bosqich esa 1-bosqichda tayyorlangan ovozsiz videoni ishlatadi.
 
+Ishga tushirish (loyiha ildizidan):
+    python modes/course.py
+
 Har bir bosqichni alohida ham ishga tushirish mumkin, masalan:
-    python step1_remove_audio.py
+    python steps/remove_audio.py
 """
 
 from __future__ import annotations
@@ -22,15 +25,19 @@ from __future__ import annotations
 import shutil
 import sys
 import time
+from pathlib import Path
 
-from step1_remove_audio import remove_audio
-from step2_extract_audio import extract_audio
-from step3_generate_srt import generate_srt
-from step4_translate_srt import translate_srt
-from step5_normalize_srt import normalize_srt
-from step6_generate_audios import generate_audios
-from step7_merge_audios import merge_audios
-from utils import ask_path, fail, format_duration
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from steps.extract_audio import extract_audio  # noqa: E402
+from steps.generate_audios import generate_audios  # noqa: E402
+from steps.generate_srt import generate_srt  # noqa: E402
+from steps.merge_audios import merge_audios  # noqa: E402
+from steps.normalize_srt import normalize_srt  # noqa: E402
+from steps.remove_audio import remove_audio  # noqa: E402
+from steps.translate_srt import translate_srt  # noqa: E402
+from utils.common import ask_path, fail, format_duration  # noqa: E402
 
 SRC_LANGUAGE = "en"
 DST_LANGUAGE = "uz"

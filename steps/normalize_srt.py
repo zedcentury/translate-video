@@ -35,10 +35,13 @@ import re
 import sys
 from pathlib import Path
 
-from srt_utils import Cue, parse_srt, write_srt
-from utils import ask_optional_path, ask_path, fail
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
-ROOT = Path(__file__).resolve().parent
+from utils.common import ask_optional_path, ask_path, fail  # noqa: E402
+from utils.srt import Cue, parse_srt, write_srt  # noqa: E402
+
 NAVOIY_DIR = Path(os.environ.get("NAVOIY_DIR", ROOT / "navoiy-tts"))
 
 # `infer` — sonlar/sanalar/vaqtni so'zga aylantiradi (TTS uchun aynan shu kerak).

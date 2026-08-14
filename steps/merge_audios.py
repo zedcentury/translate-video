@@ -14,10 +14,14 @@ from __future__ import annotations
 
 import re
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
-from utils import ask_path, fail, run_ffmpeg
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from utils.common import ask_path, fail, run_ffmpeg  # noqa: E402
 
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".aac")
 

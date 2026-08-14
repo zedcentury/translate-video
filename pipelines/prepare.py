@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Faqat 1-3 bosqichlarni ketma-ket bajaradigan qisqartirilgan quvur.
+"""Tarjimadan oldingi tayyorgarlik: faqat 1-3 bosqichlarni ketma-ket bajaradi.
 
-    1. step1_remove_audio   — videodan audio qismini olib tashlash (ffmpeg)
-    2. step2_extract_audio  — ASL videodan audio ajratib olish (ffmpeg)
-    3. step3_generate_srt   — audiodan .srt transkripsiya (openai-whisper)
+    1. steps/remove_audio   — videodan audio qismini olib tashlash (ffmpeg)
+    2. steps/extract_audio  — ASL videodan audio ajratib olish (ffmpeg)
+    3. steps/generate_srt   — audiodan .srt transkripsiya (openai-whisper)
 
 Farqi: BARCHA savollar boshida, bir marta so'raladi. Bosqichlar boshlangandan
 keyin dastur hech narsa so'ramaydi — hamma qiymat funksiyalarga argument sifatida
@@ -11,6 +11,11 @@ uzatiladi, shuning uchun ular ichkarida input kutmaydi.
 
 Eslatma: 2-bosqich transkripsiya uchun ASL videodan audio oladi (nutq faqat
 o'sha yerda), 1-bosqich esa ovozsiz nusxani tayyorlaydi.
+
+Ishga tushirish (loyiha ildizidan):
+    python pipelines/prepare.py
+
+Bir nechta video uchun: batches/prepare_batch.py
 """
 
 from __future__ import annotations
@@ -21,10 +26,13 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from step1_remove_audio import OUTPUT_SUFFIX, remove_audio
-from step2_extract_audio import extract_audio
-from step3_generate_srt import DEFAULT_SRC_LANGUAGE, generate_srt
-from utils import ask_path, ask_text, ask_yes_no, fail, format_duration
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from steps.extract_audio import extract_audio  # noqa: E402
+from steps.generate_srt import DEFAULT_SRC_LANGUAGE, generate_srt  # noqa: E402
+from steps.remove_audio import OUTPUT_SUFFIX, remove_audio  # noqa: E402
+from utils.common import ask_path, ask_text, ask_yes_no, fail, format_duration  # noqa: E402
 
 
 @dataclass
@@ -109,7 +117,7 @@ def run(answers: Answers) -> None:
 
 def main() -> None:
     print("=" * 60)
-    print(" Mini quvur: 1-3 bosqichlar (ovozsiz video + transkripsiya)")
+    print(" Tayyorgarlik: 1-3 bosqichlar (ovozsiz video + transkripsiya)")
     print("=" * 60)
 
     if shutil.which("ffmpeg") is None:

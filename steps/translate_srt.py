@@ -3,7 +3,7 @@
 TODO: claude / chatgpt / gemini API'lari orqali amalga oshiriladi.
 
 Reja:
-    srt_utils.parse_srt(srt_path) -> Cue ro'yxati olinadi.
+    utils.srt.parse_srt(srt_path) -> Cue ro'yxati olinadi.
     Cue'lar bloklarga (masalan 20-50 tadan) bo'linib LLM ga yuboriladi —
     bir vaqtning o'zida bir nechta gap berilsa, kontekst saqlanadi va tarjima sifati oshadi.
 
@@ -27,7 +27,7 @@ Reja:
         )
 
     So'ngra tarjima qilingan matnlar bilan yangi Cue'lar yasab,
-    srt_utils.write_srt(cues, translated_srt_path) chaqiriladi.
+    utils.srt.write_srt(cues, translated_srt_path) chaqiriladi.
 
 Hozircha bu bosqich QO'LDA bajariladi: foydalanuvchi tarjimani o'zi tayyorlab,
 tasdiqlaydi va dastur faylning mavjudligini tekshiradi.
@@ -42,9 +42,13 @@ Transkripsiya xatolarini to'g'irlab tarjima qil. Natijani .srt fayl ko'rinishida
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
-from utils import ask_path, confirm, fail
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from utils.common import ask_path, confirm, fail  # noqa: E402
 
 DEFAULT_SRC_LANGUAGE = "en"
 DEFAULT_DST_LANGUAGE = "uz"

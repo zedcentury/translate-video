@@ -20,10 +20,14 @@ Environment o'zgaruvchilari:
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
-from srt_utils import Cue, write_srt
-from utils import ask_path, ask_text, ask_yes_no, fail
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from utils.common import ask_path, ask_text, ask_yes_no, fail  # noqa: E402
+from utils.srt import Cue, write_srt  # noqa: E402
 
 DEFAULT_SRC_LANGUAGE = "en"
 DEFAULT_MODEL = os.environ.get("WHISPER_MODEL", "large-v3-turbo")

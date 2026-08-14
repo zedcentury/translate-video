@@ -33,10 +33,12 @@ import sys
 import time
 from pathlib import Path
 
-from srt_utils import parse_srt
-from utils import ask_path, fail
+# To'g'ridan-to'g'ri ishga tushirilganda loyiha ildizi sys.path da bo'lmaydi.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
-ROOT = Path(__file__).resolve().parent
+from utils.common import ask_path, fail  # noqa: E402
+from utils.srt import parse_srt  # noqa: E402
 
 COSYVOICE_DIR = Path(os.environ.get("COSYVOICE_DIR", ROOT / "CosyVoice"))
 BASE_MODEL_DIR = Path(
@@ -54,7 +56,7 @@ DEFAULT_SEED = int(os.environ.get("NAVOIY_SEED", "1986"))
 SAMPLE_RATE = 24000
 AUDIO_EXTENSIONS = (".wav", ".mp3", ".m4a", ".ogg", ".flac", ".aac")
 
-# Matnni normalize qilish 5-bosqichga ko'chirildi (step5_normalize_srt.py), shuning
+# Matnni normalize qilish 5-bosqichga ko'chirildi (steps/normalize_srt.py), shuning
 # uchun bu yerda takroran normalize qilinmaydi — aks holda 5-bosqichda almashtirilgan
 # atamalar yana o'zgarib ketishi mumkin. Agar bu bosqichga normalize qilinmagan .srt
 # berilsa, True qilib qo'yish kerak.

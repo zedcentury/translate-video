@@ -2,23 +2,45 @@
 
 Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo'ljallangan 7 bosqichli quvur
 (pipeline). Har bir bosqich alohida faylda va uni **mustaqil ravishda** ham,
-`main.py` orqali **ketma-ket** ham ishga tushirish mumkin.
+`modes/course.py` orqali **ketma-ket** ham ishga tushirish mumkin.
 
 | # | Fayl                       | Nima qiladi                                                  | Vosita                          |
 |---|----------------------------|--------------------------------------------------------------|---------------------------------|
-| 1 | `step1_remove_audio.py`    | Videodan audio qismini butunlay olib tashlaydi               | ffmpeg                          |
-| 2 | `step2_extract_audio.py`   | Asl videodan audio ajratib oladi                             | ffmpeg                          |
-| 3 | `step3_generate_srt.py`    | Audiodan inglizcha `.srt` yasaydi                            | openai-whisper `large-v3-turbo` |
-| 4 | `step4_translate_srt.py`   | `.srt` ni o'zbekchaga tarjima qiladi                         | **qo'lda** (LLM)                |
-| 5 | `step5_normalize_srt.py`   | Sonlar/sanalarni so'zga aylantiradi, atamalarni almashtiradi | uztts                           |
-| 6 | `step6_generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi               | Navoiy TTS (CosyVoice2)         |
-| 7 | `step7_merge_audios.py`    | O'zbekcha audiolarni timestamp bo'yicha qo'yadi              | ffmpeg                          |
+| 1 | `steps/remove_audio.py`    | Videodan audio qismini butunlay olib tashlaydi               | ffmpeg                          |
+| 2 | `steps/extract_audio.py`   | Asl videodan audio ajratib oladi                             | ffmpeg                          |
+| 3 | `steps/generate_srt.py`    | Audiodan inglizcha `.srt` yasaydi                            | openai-whisper `large-v3-turbo` |
+| 4 | `steps/translate_srt.py`   | `.srt` ni o'zbekchaga tarjima qiladi                         | **qo'lda** (LLM)                |
+| 5 | `steps/normalize_srt.py`   | Sonlar/sanalarni so'zga aylantiradi, atamalarni almashtiradi | uztts                           |
+| 6 | `steps/generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi               | Navoiy TTS (CosyVoice2)         |
+| 7 | `steps/merge_audios.py`    | O'zbekcha audiolarni timestamp bo'yicha qo'yadi              | ffmpeg                          |
 
 > **Diqqat:** 2-bosqich transkripsiya uchun **asl** videodan audio oladi (nutq faqat o'sha yerda),
 > 7-bosqich esa 1-bosqichda tayyorlangan **ovozsiz** videoni ishlatadi.
 
 > Kurslar uchun orqa fondagi musiqa/effektlar kerak emas, shuning uchun 1-bosqich nutqni fondan
 > ajratmaydi (demucs) — audio oqimi butunlay tashlab yuboriladi.
+
+### Loyiha strukturasi
+
+```
+steps/        ← quvurning alohida bosqichlari (har birini mustaqil ishga tushirsa bo'ladi)
+modes/        ← tayyor rejimlar: butun quvurni ma'lum bir video turi uchun bajaradi
+│             course.py — kurs videolari uchun 1-7 bosqichlar
+pipelines/    ← bir nechta bosqichni ketma-ket bajaradigan qisqartirilgan quvurlar
+│             prepare.py — tarjimadan oldingi tayyorgarlik (1-3 bosqichlar)
+batches/      ← bir nechta video uchun quvurlarni ketma-ket ishga tushiruvchi kodlar
+│             prepare_batch.py — prepare.py ni papkadagi hamma video uchun bajaradi
+utils/        ← umumiy yordamchilar: common.py (savollar, ffmpeg, vaqt), srt.py, locate_videos.py
+assets/       ← videolar va ular yonidagi oraliq fayllar
+```
+
+Barcha komandalar **loyiha ildizidan** ishga tushiriladi:
+
+```bash
+.venv/bin/python steps/remove_audio.py
+```
+
+Xohlasangiz, modul ko'rinishida ham ishlaydi: `.venv/bin/python -m steps.remove_audio`
 
 ---
 
@@ -95,12 +117,12 @@ speech_tokenizer_v2.onnx   flow.decoder.estimator.fp32.onnx   config.json
 
 ---
 
-## 2. Eng oson yo'l: `main.py`
+## 2. Eng oson yo'l: `modes/course.py`
 
 Barcha bosqichlarni ketma-ket bajaradi va faqat kerakli joyda savol beradi:
 
 ```bash
-.venv/bin/python main.py
+.venv/bin/python modes/course.py
 ```
 
 ```
@@ -115,7 +137,7 @@ Shundan keyin dastur o'zi ishlaydi. Faqat quyidagi joylarda to'xtaydi:
 
 ---
 
-## 2.1. Ko'p video uchun: `mini.py` va `mini_batch.py`
+## 2.1. Ko'p video uchun: `pipelines/prepare.py` va `batches/prepare_batch.py`
 
 Tarjimadan oldingi tayyorgarlik (1-3 bosqichlar: ovozsiz video + `.wav` + inglizcha `.srt`)
 alohida ajratilgan, chunki 4-bosqich qo'lda bajariladi.
@@ -123,13 +145,13 @@ alohida ajratilgan, chunki 4-bosqich qo'lda bajariladi.
 **Bitta video uchun** — barcha savollar boshida bir marta so'raladi:
 
 ```bash
-.venv/bin/python mini.py
+.venv/bin/python pipelines/prepare.py
 ```
 
 **Bir nechta video uchun** — bitta komanda bilan ketma-ket:
 
 ```bash
-.venv/bin/python mini_batch.py
+.venv/bin/python batches/prepare_batch.py
 ```
 
 ```
@@ -152,7 +174,7 @@ Quyida har bir faylni alohida ishga tushirish tartibi. Barcha savollarda kvadrat
 ### 1-bosqich — videodan audioni olib tashlash
 
 ```bash
-.venv/bin/python step1_remove_audio.py
+.venv/bin/python steps/remove_audio.py
 ```
 
 ```
@@ -168,7 +190,7 @@ necha soniyada tugaydi.
 ### 2-bosqich — videodan audio ajratish
 
 ```bash
-.venv/bin/python step2_extract_audio.py
+.venv/bin/python steps/extract_audio.py
 ```
 
 ```
@@ -183,7 +205,7 @@ Audio fayl qayerga saqlansin [/path/to/docker/docker.wav]: ⏎
 ### 3-bosqich — transkripsiya (inglizcha `.srt`)
 
 ```bash
-.venv/bin/python step3_generate_srt.py
+.venv/bin/python steps/generate_srt.py
 ```
 
 ```
@@ -202,7 +224,7 @@ transkripsiya sifati deyarli o'zgarmaydi. Aniqroq natija kerak bo'lsa (masalan s
 modelga qaytish mumkin:
 
 ```bash
-WHISPER_MODEL=large-v3 .venv/bin/python step3_generate_srt.py
+WHISPER_MODEL=large-v3 .venv/bin/python steps/generate_srt.py
 ```
 
 ---
@@ -210,7 +232,7 @@ WHISPER_MODEL=large-v3 .venv/bin/python step3_generate_srt.py
 ### 4-bosqich — tarjima (QO'LDA)
 
 ```bash
-.venv/bin/python step4_translate_srt.py
+.venv/bin/python steps/translate_srt.py
 ```
 
 ```
@@ -241,7 +263,7 @@ Yuklangan .srt faylni o'zbek tiliga (lotin) tarjima qil. Timestamp'lar o'zgarmas
 ### 5-bosqich — matnni TTS uchun normalize qilish
 
 ```bash
-.venv/bin/python step5_normalize_srt.py
+.venv/bin/python steps/normalize_srt.py
 ```
 
 ```
@@ -288,7 +310,7 @@ Atamalar kerak bo'lmasa, savolda shunchaki **Enter** bosing — faqat normalize 
 ### 6-bosqich — o'zbekcha audiolar (TTS)
 
 ```bash
-.venv/bin/python step6_generate_audios.py
+.venv/bin/python steps/generate_audios.py
 ```
 
 ```
@@ -313,7 +335,7 @@ Bir necha muhim xususiyat:
 ### 7-bosqich — o'zbekcha audiolarni biriktirish
 
 ```bash
-.venv/bin/python step7_merge_audios.py
+.venv/bin/python steps/merge_audios.py
 ```
 
 ```
@@ -326,7 +348,7 @@ Audiolar joylashgan papka manzilini kiriting [/path/to/docker/audios]: ⏎
 
 **Natija:** `/path/to/docker/docker-no-audio-uz.mp4` — tayyor dublyaj qilingan video
 
-> `main.py` orqali ishlatilganda natija `/path/to/docker/docker-uz.mp4` deb nomlanadi.
+> `modes/course.py` orqali ishlatilganda natija `/path/to/docker/docker-uz.mp4` deb nomlanadi.
 
 ---
 
@@ -386,33 +408,33 @@ Mavjud ovoz namunalari: `navoiy-tts/demo/` ichida — `xurmo.wav`, `calm_intro.w
 
 | Fayl                       | Konstanta                    | Default     | Izoh                                                   |
 |----------------------------|------------------------------|-------------|--------------------------------------------------------|
-| `step1_remove_audio.py`    | `OUTPUT_SUFFIX`              | `-no-audio` | ovozsiz video nomiga qo'shimcha                        |
-| `step3_generate_srt.py`    | `CONDITION_ON_PREVIOUS_TEXT` | `False`     | `True` — kontekst yaxshi, lekin takrorlanish xavfi bor |
-| `step6_generate_audios.py` | `FIT_TO_TIMELINE`            | `True`      | audioni o'z oralig'iga sig'dirish                      |
-| `step6_generate_audios.py` | `MAX_TEMPO`                  | `1.5`       | maksimal tezlashtirish                                 |
-| `step7_merge_audios.py`    | `ORIGINAL_VOLUME`            | `1.0`       | videoda audio bo'lsa, uning balandligi                 |
+| `steps/remove_audio.py`    | `OUTPUT_SUFFIX`              | `-no-audio` | ovozsiz video nomiga qo'shimcha                        |
+| `steps/generate_srt.py`    | `CONDITION_ON_PREVIOUS_TEXT` | `False`     | `True` — kontekst yaxshi, lekin takrorlanish xavfi bor |
+| `steps/generate_audios.py` | `FIT_TO_TIMELINE`            | `True`      | audioni o'z oralig'iga sig'dirish                      |
+| `steps/generate_audios.py` | `MAX_TEMPO`                  | `1.5`       | maksimal tezlashtirish                                 |
+| `steps/merge_audios.py`    | `ORIGINAL_VOLUME`            | `1.0`       | videoda audio bo'lsa, uning balandligi                 |
 
 ---
 
 ## 6. Tez-tez uchraydigan savollar
 
 **Jarayon uzilib qoldi, boshidan boshlash kerakmi?**
-Yo'q. Har bir bosqich tayyor natijani qayta hisoblamaydi — `main.py` ni qaytadan ishga tushiring.
+Yo'q. Har bir bosqich tayyor natijani qayta hisoblamaydi — `modes/course.py` ni qaytadan ishga tushiring.
 
 **O'zbekcha ovoz yoqmadi, boshqasini sinab ko'rmoqchiman.**
 
 ```bash
 rm -rf /path/to/docker/audios
-NAVOIY_REFERENCE=navoiy-tts/demo/warm_agent.wav .venv/bin/python step6_generate_audios.py
+NAVOIY_REFERENCE=navoiy-tts/demo/warm_agent.wav .venv/bin/python steps/generate_audios.py
 ```
 
 **Videoning fon musiqasi kerak bo'lsa-chi?**
 Hozirgi quvur uni saqlamaydi — 1-bosqich audio oqimini butunlay tashlab yuboradi. Fon kerak bo'lsa, 7-bosqichga ovozsiz
-nusxa o'rniga **asl** videoni bering va `step7_merge_audios.py` dagi
+nusxa o'rniga **asl** videoni bering va `steps/merge_audios.py` dagi
 `ORIGINAL_VOLUME` ni `0.3`–`0.6` ga tushiring (lekin unda inglizcha nutq ham eshitiladi).
 
 **O'zbekcha nutq keyingi jumla ustiga chiqib ketyapti.**
-O'zbekcha matn inglizchadan uzunroq bo'ladi. `step6_generate_audios.py` da `MAX_TEMPO` ni `1.8`
+O'zbekcha matn inglizchadan uzunroq bo'ladi. `steps/generate_audios.py` da `MAX_TEMPO` ni `1.8`
 ga ko'taring yoki `NAVOIY_SPEED=1.15` bilan generatsiya qiling.
 
 **`ModuleNotFoundError: No module named 'pkg_resources'`**
