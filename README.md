@@ -4,15 +4,15 @@ Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo
 (pipeline). Har bir bosqich alohida faylda va uni **mustaqil ravishda** ham,
 `main.py` orqali **ketma-ket** ham ishga tushirish mumkin.
 
-| # | Fayl                       | Nima qiladi                                                  | Vosita                    |
-|---|----------------------------|--------------------------------------------------------------|---------------------------|
-| 1 | `step1_remove_audio.py`    | Videodan audio qismini butunlay olib tashlaydi               | ffmpeg                    |
-| 2 | `step2_extract_audio.py`   | Asl videodan audio ajratib oladi                             | ffmpeg                    |
+| # | Fayl                       | Nima qiladi                                                  | Vosita                          |
+|---|----------------------------|--------------------------------------------------------------|---------------------------------|
+| 1 | `step1_remove_audio.py`    | Videodan audio qismini butunlay olib tashlaydi               | ffmpeg                          |
+| 2 | `step2_extract_audio.py`   | Asl videodan audio ajratib oladi                             | ffmpeg                          |
 | 3 | `step3_generate_srt.py`    | Audiodan inglizcha `.srt` yasaydi                            | openai-whisper `large-v3-turbo` |
-| 4 | `step4_translate_srt.py`   | `.srt` ni o'zbekchaga tarjima qiladi                         | **qo'lda** (LLM)          |
-| 5 | `step5_normalize_srt.py`   | Sonlar/sanalarni so'zga aylantiradi, atamalarni almashtiradi | uztts                     |
-| 6 | `step6_generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi               | Navoiy TTS (CosyVoice2)   |
-| 7 | `step7_merge_audios.py`    | O'zbekcha audiolarni timestamp bo'yicha qo'yadi              | ffmpeg                    |
+| 4 | `step4_translate_srt.py`   | `.srt` ni o'zbekchaga tarjima qiladi                         | **qo'lda** (LLM)                |
+| 5 | `step5_normalize_srt.py`   | Sonlar/sanalarni so'zga aylantiradi, atamalarni almashtiradi | uztts                           |
+| 6 | `step6_generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi               | Navoiy TTS (CosyVoice2)         |
+| 7 | `step7_merge_audios.py`    | O'zbekcha audiolarni timestamp bo'yicha qo'yadi              | ffmpeg                          |
 
 > **Diqqat:** 2-bosqich transkripsiya uchun **asl** videodan audio oladi (nutq faqat o'sha yerda),
 > 7-bosqich esa 1-bosqichda tayyorlangan **ovozsiz** videoni ishlatadi.
@@ -139,9 +139,8 @@ Start (masalan 18 -> docker18 dan boshlanadi) [1]: 18
 
 Har bir papka nomidan uning ichidagi fayllar aniqlanadi (`docker9` → `docker9/docker9.mp4`,
 `docker9-no-audio.mp4`, `docker9.wav`, `docker9.srt`, til `en`). Papkalar nomidagi **raqam**
-bo'yicha tartiblanadi (`docker2` → `docker10` → `docker100`), shuning uchun `Start` aynan shu
-raqamga qaraydi. Uch natijasi ham tayyor papka o'tkazib yuboriladi, bitta video xato bersa quvur
-to'xtamaydi — oxirida hisobot chiqadi.
+bo'yicha tartiblanadi (`docker2` → `docker10` → `docker100`), shuning uchun `Start` aynan shu raqamga qaraydi. Uch
+natijasi ham tayyor papka o'tkazib yuboriladi, bitta video xato bersa quvur to'xtamaydi — oxirida hisobot chiqadi.
 
 ---
 
@@ -161,8 +160,8 @@ Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/dock
 Ovozsiz video qayerga saqlansin [/path/to/docker/docker-no-audio.mp4]: ⏎
 ```
 
-**Natija:** `/path/to/docker/docker-no-audio.mp4` — tasvir o'zgarmaydi (`-c:v copy`), audio oqimi esa
-umuman yo'q. Bir necha soniyada tugaydi.
+**Natija:** `/path/to/docker/docker-no-audio.mp4` — tasvir o'zgarmaydi (`-c:v copy`), audio oqimi esa umuman yo'q. Bir
+necha soniyada tugaydi.
 
 ---
 
@@ -198,9 +197,9 @@ Audiodagi nutq tili (auto — o'zi aniqlaydi) [en]: ⏎
 Til savolida Enter bosilsa `en` olinadi. Boshqa til uchun `ru`, `uz` kabi kod kiriting;
 `auto` deb yozsangiz, whisper tilni o'zi aniqlaydi.
 
-Default model — `large-v3-turbo`: `large-v3` ning qisqartirilgan dekoderli varianti, bir necha
-barobar tez ishlaydi va transkripsiya sifati deyarli o'zgarmaydi. Aniqroq natija kerak bo'lsa
-(masalan sifati past, shovqinli yozuv), to'liq modelga qaytish mumkin:
+Default model — `large-v3-turbo`: `large-v3` ning qisqartirilgan dekoderli varianti, bir necha barobar tez ishlaydi va
+transkripsiya sifati deyarli o'zgarmaydi. Aniqroq natija kerak bo'lsa (masalan sifati past, shovqinli yozuv), to'liq
+modelga qaytish mumkin:
 
 ```bash
 WHISPER_MODEL=large-v3 .venv/bin/python step3_generate_srt.py
@@ -358,11 +357,11 @@ Kodga tegmasdan, environment o'zgaruvchilari orqali:
 
 ### 3-bosqich (whisper)
 
-| O'zgaruvchi             | Default            | Izoh                          |
-|-------------------------|--------------------|-------------------------------|
+| O'zgaruvchi             | Default            | Izoh                           |
+|-------------------------|--------------------|--------------------------------|
 | `WHISPER_MODEL`         | `large-v3-turbo`   | `large-v3` — sekinroq, aniqroq |
-| `WHISPER_DEVICE`        | `cpu` / `cuda`     | `mps` ni sinab ko'rish mumkin |
-| `WHISPER_DOWNLOAD_ROOT` | `~/.cache/whisper` | model saqlanadigan papka      |
+| `WHISPER_DEVICE`        | `cpu` / `cuda`     | `mps` ni sinab ko'rish mumkin  |
+| `WHISPER_DOWNLOAD_ROOT` | `~/.cache/whisper` | model saqlanadigan papka       |
 
 ### 6-bosqich (Navoiy TTS)
 
@@ -385,13 +384,13 @@ Mavjud ovoz namunalari: `navoiy-tts/demo/` ichida — `xurmo.wav`, `calm_intro.w
 
 ### Kod ichidagi konstantalar
 
-| Fayl                       | Konstanta                    | Default      | Izoh                                                    |
-|----------------------------|------------------------------|--------------|---------------------------------------------------------|
-| `step1_remove_audio.py`    | `OUTPUT_SUFFIX`              | `-no-audio`  | ovozsiz video nomiga qo'shimcha                         |
-| `step3_generate_srt.py`    | `CONDITION_ON_PREVIOUS_TEXT` | `False`      | `True` — kontekst yaxshi, lekin takrorlanish xavfi bor  |
-| `step6_generate_audios.py` | `FIT_TO_TIMELINE`            | `True`       | audioni o'z oralig'iga sig'dirish                       |
-| `step6_generate_audios.py` | `MAX_TEMPO`                  | `1.5`        | maksimal tezlashtirish                                  |
-| `step7_merge_audios.py`    | `ORIGINAL_VOLUME`            | `1.0`        | videoda audio bo'lsa, uning balandligi                  |
+| Fayl                       | Konstanta                    | Default     | Izoh                                                   |
+|----------------------------|------------------------------|-------------|--------------------------------------------------------|
+| `step1_remove_audio.py`    | `OUTPUT_SUFFIX`              | `-no-audio` | ovozsiz video nomiga qo'shimcha                        |
+| `step3_generate_srt.py`    | `CONDITION_ON_PREVIOUS_TEXT` | `False`     | `True` — kontekst yaxshi, lekin takrorlanish xavfi bor |
+| `step6_generate_audios.py` | `FIT_TO_TIMELINE`            | `True`      | audioni o'z oralig'iga sig'dirish                      |
+| `step6_generate_audios.py` | `MAX_TEMPO`                  | `1.5`       | maksimal tezlashtirish                                 |
+| `step7_merge_audios.py`    | `ORIGINAL_VOLUME`            | `1.0`       | videoda audio bo'lsa, uning balandligi                 |
 
 ---
 
@@ -408,8 +407,8 @@ NAVOIY_REFERENCE=navoiy-tts/demo/warm_agent.wav .venv/bin/python step6_generate_
 ```
 
 **Videoning fon musiqasi kerak bo'lsa-chi?**
-Hozirgi quvur uni saqlamaydi — 1-bosqich audio oqimini butunlay tashlab yuboradi. Fon kerak bo'lsa,
-7-bosqichga ovozsiz nusxa o'rniga **asl** videoni bering va `step7_merge_audios.py` dagi
+Hozirgi quvur uni saqlamaydi — 1-bosqich audio oqimini butunlay tashlab yuboradi. Fon kerak bo'lsa, 7-bosqichga ovozsiz
+nusxa o'rniga **asl** videoni bering va `step7_merge_audios.py` dagi
 `ORIGINAL_VOLUME` ni `0.3`–`0.6` ga tushiring (lekin unda inglizcha nutq ham eshitiladi).
 
 **O'zbekcha nutq keyingi jumla ustiga chiqib ketyapti.**
