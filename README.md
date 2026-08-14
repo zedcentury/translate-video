@@ -339,15 +339,11 @@ Bu paytda `/path/to/docker/docker.srt` faylini Claude / ChatGPT / Gemini ga yukl
 qildiring, natijani `/path/to/docker/docker-uz.srt` nomi bilan saqlang, so'ng `ha` deb javob bering:
 
 ```text
-Yuklangan .srt faylni o'zbek tiliga (lotin) tarjima qil. Timestamp'lar o'zgarmasin, format saqlansin. Gap yoki atama ikki blokka bo'linib qolgan joylarda bloklarni birlashtirishga ruxsat — birlashgan blok birinchi bo'lakning boshi va oxirgi bo'lakning oxiri vaqtini olsin, keyin qayta raqamla. Texnik atamalar va ismlar tarjima qilinmasdan, asl inglizcha yozuvida qolsin. Uslub — jonli, o'qituvchi so'zlayotgandek. Transkripsiya xatolarini to'g'irlab tarjima qil. Natijada IKKITA fayl ber:
-
-1. Tarjima qilingan .srt fayl.
-2. .json fayl — tarjimada inglizcha holida qolgan barcha so'zlar lug'ati:
-   * Kalit (key) — srt faylda uchragan aynan o'sha yozuv.
-   * Qiymat (value) — o'sha so'zning o'zbekcha o'qilishi, o'zbek lotin harflarida (inglizcha talaffuzga asoslanib).
-   * Har bir yozuv shakli alohida kalit bo'lsin: "Docker" va "docker" — ikki xil yozuv.
-   * Takrorlanmasin, har bir so'z bir marta. Alifbo tartibida joylashtir.
-   * Faqat toza JSON — izohsiz, markdown belgilarsiz, tekis (nested emas) tuzilishda. Namuna: { "container": "kanteynr", "deploy": "deplo'y", "Docker": "Do'ker", "docker": "do'ker", "Kubernetes": "Kubernits", "kubernetes": "kubernits", "Maximilian": "Maksimillian", "Schwarzmuller": "Shvarzmyuller" }
+Yuklangan .srt faylni o'zbek tiliga (lotin) tarjima qil. Timestamp'lar o'zgarmasin, format saqlansin. Gap yoki atama 
+ikki blokka bo'linib qolgan joylarda bloklarni birlashtirishga ruxsat — birlashgan blok birinchi bo'lakning boshi va 
+oxirgi bo'lakning oxiri vaqtini olsin, keyin qayta raqamla. Texnik atamalar va ismlar tarjima qilinmasdan, asl 
+inglizcha yozuvida qolsin. Uslub — jonli, o'qituvchi so'zlayotgandek. Transkripsiya xatolarini to'g'irlab tarjima qil. 
+Natijada tarjima qilingan .srt faylni ber.
 ```
 
 **Natija:** `/path/to/docker/docker-uz.srt`
