@@ -57,8 +57,9 @@ def collect_answers() -> Answers:
         "3) Transkripsiya .srt fayli qayerga saqlansin",
         default=video_path.with_suffix(".srt"),
     )
+    # Raqamlar — savol tartibi (bosqich raqami emas), shuning uchun til savoli 4).
     src_language = ask_text(
-        "3) Audiodagi nutq tili (auto — o'zi aniqlaydi)", default=DEFAULT_SRC_LANGUAGE
+        "4) Audiodagi nutq tili (auto — o'zi aniqlaydi)", default=DEFAULT_SRC_LANGUAGE
     )
 
     # Tayyor .srt uchun savol ham SHU YERDA beriladi, aks holda bosqich
