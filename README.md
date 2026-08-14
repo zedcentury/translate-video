@@ -185,6 +185,39 @@ Ovozsiz video qayerga saqlansin [/path/to/docker/docker-no-audio.mp4]: ⏎
 **Natija:** `/path/to/docker/docker-no-audio.mp4` — tasvir o'zgarmaydi (`-c:v copy`), audio oqimi esa umuman yo'q. Bir
 necha soniyada tugaydi.
 
+#### Muqobil: fon ovozini saqlab qolish (`steps/remove_vocals.py`)
+
+Agar videoning fon ovozi (musiqa, effektlar) kerak bo'lsa, audioni butunlay tashlash o'rniga faqat **odam nutqini**
+olib tashlash mumkin. Buni demucs qiladi:
+
+```bash
+.venv/bin/python steps/remove_vocals.py
+```
+
+```
+Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/docker.mp4
+Nutqsiz video qayerga saqlansin [/path/to/docker/docker-removed-vocal.mp4]: ⏎
+```
+
+**Natija:** `/path/to/docker/docker-removed-vocal.mp4` — tasvir o'zgarmaydi, ovozda esa inglizcha nutq qolmaydi,
+faqat fon tovushlari eshitiladi. Oraliq `.wav` fayllar avtomatik o'chiriladi (fon audiosini saqlab qolish uchun
+`background_audio` argumentini bering).
+
+Buning uchun demucs kerak (model birinchi ishlatilganda ~300 MB yuklab olinadi):
+
+```bash
+.venv/bin/pip install demucs
+```
+
+Bu bosqich **sekin**: CPU da real vaqtdan ~1x, Apple Silicon'da tezroq bo'lishi mumkin:
+
+```bash
+DEMUCS_DEVICE=mps .venv/bin/python steps/remove_vocals.py
+```
+
+> Kurs videolarida fon ovozi odatda kerak emas, shuning uchun `modes/course.py` va `pipelines/prepare.py`
+> `remove_audio.py` ni ishlatadi. `remove_vocals.py` ni ular chaqirmaydi — u alohida ishga tushiriladi.
+
 ---
 
 ### 2-bosqich — videodan audio ajratish
@@ -404,11 +437,19 @@ Mavjud hissiyotlar: `calm`, `happy`, `excited`, `sad`, `angry`, `nervous`, `scar
 Mavjud ovoz namunalari: `navoiy-tts/demo/` ichida — `xurmo.wav`, `calm_intro.wav`,
 `warm_agent.wav`, `happy.wav`, `sad.wav`, `angry.wav`, `surprised.wav`, `long_form.wav`
 
+### Ixtiyoriy bosqich (demucs)
+
+| O'zgaruvchi     | Default        | Izoh                      |
+|-----------------|----------------|---------------------------|
+| `DEMUCS_MODEL`  | `htdemucs`     | nutqni ajratish modeli    |
+| `DEMUCS_DEVICE` | `cpu` / `cuda` | Apple Silicon uchun `mps` |
+
 ### Kod ichidagi konstantalar
 
 | Fayl                       | Konstanta                    | Default     | Izoh                                                   |
 |----------------------------|------------------------------|-------------|--------------------------------------------------------|
 | `steps/remove_audio.py`    | `OUTPUT_SUFFIX`              | `-no-audio` | ovozsiz video nomiga qo'shimcha                        |
+| `steps/remove_vocals.py`   | `OUTPUT_SUFFIX`              | `-removed-vocal` | nutqsiz video nomiga qo'shimcha                   |
 | `steps/generate_srt.py`    | `CONDITION_ON_PREVIOUS_TEXT` | `False`     | `True` — kontekst yaxshi, lekin takrorlanish xavfi bor |
 | `steps/generate_audios.py` | `FIT_TO_TIMELINE`            | `True`      | audioni o'z oralig'iga sig'dirish                      |
 | `steps/generate_audios.py` | `MAX_TEMPO`                  | `1.5`       | maksimal tezlashtirish                                 |
@@ -429,9 +470,9 @@ NAVOIY_REFERENCE=navoiy-tts/demo/warm_agent.wav .venv/bin/python steps/generate_
 ```
 
 **Videoning fon musiqasi kerak bo'lsa-chi?**
-Hozirgi quvur uni saqlamaydi — 1-bosqich audio oqimini butunlay tashlab yuboradi. Fon kerak bo'lsa, 7-bosqichga ovozsiz
-nusxa o'rniga **asl** videoni bering va `steps/merge_audios.py` dagi
-`ORIGINAL_VOLUME` ni `0.3`–`0.6` ga tushiring (lekin unda inglizcha nutq ham eshitiladi).
+1-bosqich o'rniga `steps/remove_vocals.py` ni ishga tushiring — u demucs orqali faqat odam nutqini olib tashlaydi va
+`docker-removed-vocal.mp4` yasaydi. So'ng 7-bosqichga ovozsiz nusxa o'rniga o'sha faylni bering; fon baland tuyulsa,
+`steps/merge_audios.py` dagi `ORIGINAL_VOLUME` ni `0.3`–`0.6` ga tushiring.
 
 **O'zbekcha nutq keyingi jumla ustiga chiqib ketyapti.**
 O'zbekcha matn inglizchadan uzunroq bo'ladi. `steps/generate_audios.py` da `MAX_TEMPO` ni `1.8`
