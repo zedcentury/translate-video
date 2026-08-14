@@ -10,7 +10,7 @@ Ingliz tilidagi videoni o'zbek tilida gapiriladigan variantga o'tkazish uchun mo
 | 1b | `steps/remove_vocals.py`   | Videodan faqat odam nutqini olib tashlaydi, fonni qoldiradi  | demucs + ffmpeg                 |
 | 2  | `steps/extract_audio.py`   | Asl videodan audio ajratib oladi                             | ffmpeg                          |
 | 3  | `steps/generate_srt.py`    | Audiodan inglizcha `.srt` yasaydi                            | openai-whisper `large-v3-turbo` |
-| 4  | `steps/translate_srt.py`   | `.srt` ni o'zbekchaga tarjima qiladi                         | **qo'lda** (LLM)                |
+| 4  | `steps/translate_srt.py`   | `.srt` ni o'zbekchaga tarjima qiladi                         | Claude Code headless (opus 5)   |
 | 5  | `steps/normalize_srt.py`   | Sonlar/sanalarni so'zga aylantiradi, atamalarni almashtiradi | uztts                           |
 | 6  | `steps/generate_audios.py` | Har bir subtitr uchun audio generatsiya qiladi               | Navoiy TTS (CosyVoice2)         |
 | 7  | `steps/merge_audios.py`    | O'zbekcha audiolarni timestamp bo'yicha qo'yadi              | ffmpeg                          |
@@ -55,6 +55,8 @@ Xohlasangiz, modul ko'rinishida ham ishlaydi: `.venv/bin/python -m steps.remove_
 
 - **ffmpeg** va **ffprobe** — `brew install ffmpeg`
 - **Python 3.12** (loyihadagi `.venv` shu versiyada)
+- **claude CLI** (4-bosqich, tarjima uchun) — `npm install -g @anthropic-ai/claude-code`, so'ng bir marta
+  `claude` ni ishga tushirib tizimga kiring
 - **CosyVoice** + **navoiy-tts** modellari (loyiha ichida)
 
 ### Python kutubxonalari
@@ -143,7 +145,7 @@ Rejim barcha bosqichlarni ketma-ket bajaradi va faqat kerakli joyda savol beradi
 [1/7] steps/remove_audio.py      docker.mp4                 -> docker-no-audio.mp4
 [2/7] steps/extract_audio.py     docker.mp4                 -> docker.wav
 [3/7] steps/generate_srt.py      docker.wav                 -> docker.srt
-[4/7] steps/translate_srt.py     docker.srt                 -> docker-uz.srt            (qo'lda)
+[4/7] steps/translate_srt.py     docker.srt                 -> docker-uz.srt            (claude -p)
 [5/7] steps/normalize_srt.py     docker-uz.srt              -> docker-uz-normalized.srt
 [6/7] steps/generate_audios.py   docker-uz-normalized.srt   -> audios/*.wav
 [7/7] steps/merge_audios.py      docker-no-audio.mp4 + audios/  -> docker-result.mp4
@@ -163,7 +165,7 @@ Yakuniy videoda faqat o'zbekcha nutq eshitiladi — asl ovozdan hech narsa qolma
 [1/7] steps/remove_vocals.py     movie.mp4                  -> movie-removed-vocal.mp4  (demucs)
 [2/7] steps/extract_audio.py     movie.mp4                  -> movie.wav
 [3/7] steps/generate_srt.py      movie.wav                  -> movie.srt
-[4/7] steps/translate_srt.py     movie.srt                  -> movie-uz.srt             (qo'lda)
+[4/7] steps/translate_srt.py     movie.srt                  -> movie-uz.srt             (claude -p)
 [5/7] steps/normalize_srt.py     movie-uz.srt               -> movie-uz-normalized.srt
 [6/7] steps/generate_audios.py   movie-uz-normalized.srt    -> audios/*.wav
 [7/7] steps/merge_audios.py      movie-removed-vocal.mp4 + audios/  -> movie-result.mp4
@@ -191,7 +193,7 @@ Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/dock
 Shundan keyin dastur o'zi ishlaydi. Faqat quyidagi joylarda to'xtaydi:
 
 1. `.srt` allaqachon mavjud bo'lsa — qayta generatsiya qilishni so'raydi (Enter = yo'q)
-2. **4-bosqich** — o'zbekcha tarjimani qo'lda tayyorlashingizni kutadi (pastga qarang)
+2. **4-bosqich** — tarjima allaqachon mavjud bo'lsa, qayta tarjima qilishni so'raydi (Enter = yo'q)
 3. **5-bosqich** — atamalar JSON faylini so'raydi (kerak bo'lmasa Enter)
 4. faqat `movie.py`: `-removed-vocal` video allaqachon mavjud bo'lsa, qayta yasashni so'raydi (Enter = yo'q)
 
@@ -200,7 +202,7 @@ Shundan keyin dastur o'zi ishlaydi. Faqat quyidagi joylarda to'xtaydi:
 ## 2.1. Ko'p video uchun: `pipelines/prepare.py` va `batches/prepare_batch.py`
 
 Tarjimadan oldingi tayyorgarlik (1-3 bosqichlar: ovozsiz video + `.wav` + inglizcha `.srt`)
-alohida ajratilgan, chunki 4-bosqich qo'lda bajariladi.
+alohida ajratilgan: shu uch bosqich tugagach, tarjima va TTS bosqichlariga o'tiladi.
 
 **Bitta video uchun** — barcha savollar boshida bir marta so'raladi:
 
@@ -328,7 +330,7 @@ WHISPER_MODEL=large-v3 .venv/bin/python steps/generate_srt.py
 
 ---
 
-### 4-bosqich — tarjima (QO'LDA)
+### 4-bosqich — tarjima (Claude Code headless)
 
 ```bash
 .venv/bin/python steps/translate_srt.py
@@ -337,21 +339,36 @@ WHISPER_MODEL=large-v3 .venv/bin/python steps/generate_srt.py
 ```
 Tarjima qilinadigan .srt fayl manzilini kiriting: /path/to/docker/docker.srt
 Tarjima qilingan .srt fayl qayerga saqlansin [/path/to/docker/docker-uz.srt]: ⏎
-  Tarjima hozircha qo'lda bajariladi. docker-uz.srt tayyormi? [ha/yo'q]:
-```
-
-Bu paytda `/path/to/docker/docker.srt` faylini Claude / ChatGPT / Gemini ga yuklab, quyidagi prompt bilan tarjima
-qildiring, natijani `/path/to/docker/docker-uz.srt` nomi bilan saqlang, so'ng `ha` deb javob bering:
-
-```text
-Yuklangan .srt faylni o'zbek tiliga (lotin) tarjima qil. Timestamp'lar o'zgarmasin, format saqlansin. Gap yoki atama 
-ikki blokka bo'linib qolgan joylarda bloklarni birlashtirishga ruxsat — birlashgan blok birinchi bo'lakning boshi va 
-oxirgi bo'lakning oxiri vaqtini olsin, keyin qayta raqamla. Texnik atamalar va ismlar tarjima qilinmasdan, asl 
-inglizcha yozuvida qolsin. Uslub — jonli, o'qituvchi so'zlayotgandek. Transkripsiya xatolarini to'g'irlab tarjima qil. 
-Natijada tarjima qilingan .srt faylni ber.
+  Yo'nalish: en -> uz | 59 ta subtitr
+  Model: claude-opus-5 (effort=high) — bu biroz vaqt oladi...
+  29 ta subtitr yozildi (1 daqiqa 12 soniya, $0.4137).
 ```
 
 **Natija:** `/path/to/docker/docker-uz.srt`
+
+Butun `.srt` matni `claude -p` ga prompt sifatida beriladi va model tayyor `.srt` qaytaradi. Prompt bloklarni
+birlashtirishga ruxsat bergani uchun natijada bloklar soni kamayishi normal.
+
+Talab: `claude` CLI o'rnatilgan va tizimga kirilgan bo'lishi kerak:
+
+```bash
+npm install -g @anthropic-ai/claude-code
+```
+
+Tarjima allaqachon mavjud bo'lsa, qayta tarjima qilish so'raladi (Enter = yo'q) — chunki har bir chaqiruv
+pullik. Model faqat matn qaytarishi uchun barcha tool'lar o'chirilgan va sessiya saqlanmaydi.
+
+Sozlamalar (environment o'zgaruvchilari):
+
+| O'zgaruvchi      | Default          | Izoh                              |
+|------------------|------------------|-----------------------------------|
+| `CLAUDE_MODEL`   | `claude-opus-5`  | tarjima qiladigan model           |
+| `CLAUDE_EFFORT`  | `high`           | effort darajasi                   |
+| `CLAUDE_TIMEOUT` | `3600`           | bitta chaqiruv uchun sekund       |
+
+```bash
+CLAUDE_MODEL=claude-sonnet-5 .venv/bin/python steps/translate_srt.py
+```
 
 ---
 
@@ -458,7 +475,7 @@ Audiolar joylashgan papka manzilini kiriting [/path/to/docker/audios]: ⏎
 ├── docker-no-audio.mp4        ← 1-bosqich (ovozsiz video)
 ├── docker.wav                 ← 2-bosqich (16 kHz mono)
 ├── docker.srt                 ← 3-bosqich (inglizcha)
-├── docker-uz.srt              ← 4-bosqich (o'zbekcha, qo'lda)
+├── docker-uz.srt              ← 4-bosqich (o'zbekcha, claude -p)
 ├── normalize.json             ← atamalar ro'yxati (ixtiyoriy, o'zingiz yaratasiz)
 ├── docker-uz-normalized.srt   ← 5-bosqich (TTS uchun tayyorlangan)
 ├── audios/                    ← 6-bosqich
