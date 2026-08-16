@@ -38,6 +38,7 @@ batches/      ← bir nechta video uchun quvurlarni ketma-ket ishga tushiruvchi 
 │             translate_batch.py    — 4-bosqichni (tarjima) hamma .srt uchun bajaradi
 │             normalize_srt_batch.py — 5-bosqichni (normalize) hamma tarjima uchun bajaradi
 utils/        ← umumiy yordamchilar: common.py (savollar, ffmpeg, vaqt), srt.py, locate_videos.py
+│             collect_terms.py — normalize.json uchun atama shakllarini yig'ib beradi
 assets/       ← videolar va ular yonidagi oraliq fayllar
 ```
 
@@ -498,6 +499,35 @@ Almashtirish birinchi bajarilgani uchun atamaning natijasi ham normalize'dan o't
 bo'lsa, yakunda `No'd ikki ta` chiqadi.
 
 Atamalar kerak bo'lmasa, savolda shunchaki **Enter** bosing — faqat normalize bajariladi.
+
+#### Qamrab olinmagan shakllarni topish: `utils/collect_terms.py`
+
+Qo'shimchali va tinish belgili shakllarni qo'lda terib chiqmaslik uchun:
+
+```bash
+.venv/bin/python utils/collect_terms.py
+```
+
+```
+Path (video papkalari joylashgan ota papka): /path/to/assets/docker
+normalize.json manzili [/path/to/assets/docker/normalize.json]: ⏎
+Natija JSON fayllari qaysi papkaga saqlansin [/path/to/assets/docker/terms]: ⏎
+```
+
+Skript `<papka>/<papka nomi>-uz-normalized.srt` fayllarini o'qib, `normalize.json` dagi har bir atama uchun
+alohida fayl yaratadi — masalan `terms/container.json`:
+
+```json
+{
+  "container'lar": "konteyner'lar",
+  "container.": "konteyner.",
+  "containerda": "konteynerda"
+}
+```
+
+Qiymat avtomatik to'ldiriladi (atama o'qilishiga almashtiriladi, qolgan qismi o'zgarmaydi). Manba sifatida
+**normalize qilingan** fayl olingani uchun u yerda faqat hali almashtirilmagan shakllar qoladi — ya'ni
+natijadagi ro'yxat aynan `normalize.json` ga qo'shilishi kerak bo'lgan yozuvlar bo'ladi.
 
 ---
 
