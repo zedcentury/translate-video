@@ -34,8 +34,9 @@ modes/        ← tayyor rejimlar: butun quvurni ma'lum bir video turi uchun baj
 pipelines/    ← bir nechta bosqichni ketma-ket bajaradigan qisqartirilgan quvurlar
 │             prepare.py — tarjimadan oldingi tayyorgarlik (1-3 bosqichlar)
 batches/      ← bir nechta video uchun quvurlarni ketma-ket ishga tushiruvchi kodlar
-│             prepare_batch.py   — prepare.py ni papkadagi hamma video uchun bajaradi
-│             translate_batch.py — 4-bosqichni (tarjima) hamma .srt uchun bajaradi
+│             prepare_batch.py      — prepare.py ni papkadagi hamma video uchun bajaradi
+│             translate_batch.py    — 4-bosqichni (tarjima) hamma .srt uchun bajaradi
+│             normalize_srt_batch.py — 5-bosqichni (normalize) hamma tarjima uchun bajaradi
 utils/        ← umumiy yordamchilar: common.py (savollar, ffmpeg, vaqt), srt.py, locate_videos.py
 assets/       ← videolar va ular yonidagi oraliq fayllar
 ```
@@ -264,6 +265,38 @@ docker15/docker15.srt  ->  docker15/docker15-uz.srt
 - Nomi ota papka nomi bilan boshlanmaydigan yoki ichida `.srt` bo'lmagan papkalar boshida ro'yxat qilib
   ko'rsatiladi.
 - Fayllar ketma-ket tarjima qilinadi (bir vaqtda bittadan).
+
+---
+
+## 2.3. Ko'p `.srt` ni normalize qilish: `batches/normalize_srt_batch.py`
+
+Tarjimadan keyingi qadam — 5-bosqichni (TTS uchun normalize) bir necha papka uchun birdan bajarish:
+
+```bash
+.venv/bin/python batches/normalize_srt_batch.py
+```
+
+```
+Path (video papkalari joylashgan ota papka): /path/to/assets/docker
+Start (masalan 14 -> docker14 dan boshlanadi) [1]: 14
+End (masalan 20 -> docker20 gacha, docker20 ham kiradi) [oxirigacha]: 20
+Tarjima tili (til kodi) [uz]: ⏎
+Umumiy atamalar JSON fayli (/path/to/assets/docker/normalize.json) (o'tkazib yuborish uchun Enter): /path/to/assets/docker/normalize.json
+Tayyor natijalar qayta hisoblansinmi? [ha/Yo'q]: ⏎
+```
+
+Har bir papkada `<papka nomi>-uz.srt` qidiriladi va yoniga `-normalized` qo'shimchasi bilan yoziladi:
+
+```
+docker14/docker14-uz.srt  ->  docker14/docker14-uz-normalized.srt
+```
+
+- **Atamalar ro'yxati**: papka ichida `<papka nomi>-normalize.json` bo'lsa, aynan o'sha ishlatiladi (papkaga xos
+  atamalar uchun); bo'lmasa — boshida so'ralgan umumiy JSON. Ikkalasi ham bo'lmasa, faqat sonlar/sanalar so'zga
+  aylantiriladi.
+- Bosqich bepul va tez (hammasi lokal), shuning uchun `normalize.json` ni o'zgartirgach, oxirgi savolga `ha` deb
+  javob berib hammasini qaytadan hisoblash mumkin.
+- Bitta fayl xato bersa (masalan buzuq JSON) quvur to'xtamaydi — oxirida hisobot chiqadi.
 
 ---
 

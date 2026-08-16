@@ -53,6 +53,7 @@ def normalize_srt(
     srt_path: str | Path | None = None,
     output_path: str | Path | None = None,
     replacements_path: str | Path | None = None,
+    ask_replacements: bool = True,
 ) -> Path:
     """Tarjima qilingan .srt matnlarini normalize qilib, yangi .srt yaratish.
 
@@ -62,6 +63,9 @@ def normalize_srt(
             (default qiymat: `<nom>-normalized.srt`).
         replacements_path: Atamalar ro'yxati (JSON). Berilmasa, input orqali so'raladi;
             u yerda ham bo'sh qoldirilsa, almashtirish bajarilmaydi.
+        ask_replacements: `False` bo'lsa, atamalar fayli so'ralmaydi — `replacements_path`
+            berilmagan bo'lsa, shunchaki almashtirishsiz davom etadi. Batch rejimida
+            savol berilib qolmasligi uchun kerak.
 
     Returns:
         Normalize qilingan .srt faylning manzili.
@@ -82,7 +86,7 @@ def normalize_srt(
         )
     output_path = Path(output_path).expanduser().resolve()
 
-    if replacements_path is None:
+    if replacements_path is None and ask_replacements:
         replacements_path = ask_optional_path(
             "Atamalar JSON fayli manzilini kiriting (/path/to/docker/normalize.json)"
         )
@@ -162,8 +166,12 @@ def build_pattern(replacements: dict[str, str]) -> re.Pattern[str] | None:
     """Atamalarni butun so'z sifatida topadigan regex yasash."""
     if not replacements:
         return None
-    # Uzunlaridan boshlab tartiblaymiz, aks holda "kubernetes api" dan oldin
-    # "kubernetes" mos kelib, qolgan qismi almashmay qoladi.
+    # ENG UZUNIDAN boshlab tartiblaymiz — regex alternatsiyasida Python birinchi
+    # mos kelgan variantni oladi, eng uzunini emas. Aks holda "kubernetes api"
+    # o'rniga faqat "kubernetes" almashib, qolgan qismi tegilmay qolardi.
+    # ("container" va "containers" kabi juftliklarni esa `\b` chegarasi ham
+    # himoyalaydi: "containers" ichidagi "container" dan keyin so'z chegarasi
+    # yo'q, shuning uchun u mos kelmaydi.)
     terms = sorted(replacements, key=len, reverse=True)
     return re.compile(r"\b(?:" + "|".join(re.escape(term) for term in terms) + r")\b", re.IGNORECASE)
 
