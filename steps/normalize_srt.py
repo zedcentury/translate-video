@@ -1,19 +1,24 @@
 """5-bosqich: tarjima qilingan .srt dagi matnlarni TTS uchun normalize qilish.
 
-`uztts.normalize` (navoiy-tts ichida) sonlar, sanalar, vaqt va o'lchov birliklarini
-o'qiladigan so'zlarga aylantiradi:
+Ikki amal SHU TARTIBDA bajariladi:
 
-    "Bugun 16.07.2026, soat 14:30 da uchrashamiz."
-    -> "Bugun o'n olti iyul ikki ming yigirma olti, soat o'n to'rt o'ttiz da uchrashamiz."
+1. ATAMALAR ALMASHTIRILADI (normalize.json). Tarjima qilinmaydigan inglizcha
+   atamalar TTS tomonidan noto'g'ri o'qiladi, shuning uchun ularni o'zbekcha
+   talaffuziga yaqin ko'rinishga o'tkazamiz:
 
-Undan keyin ixtiyoriy ravishda ATAMALAR ALMASHTIRILADI. Tarjima qilinmaydigan
-inglizcha atamalar TTS tomonidan noto'g'ri o'qilishi mumkin, shuning uchun ularni
-o'zbekcha talaffuziga yaqin ko'rinishga o'tkazish kerak bo'ladi:
+       docker      -> do'ker
+       kubernetes  -> kubernites
 
-    docker      -> do'ker
-    kubernetes  -> kubernites
+2. `uztts.normalize` (navoiy-tts ichida) sonlar, sanalar, vaqt va o'lchov
+   birliklarini o'qiladigan so'zlarga aylantiradi:
 
-Bu ro'yxat alohida JSON faylda saqlanadi va manzili input orqali so'raladi.
+       "Bugun 16.07.2026, soat 14:30 da uchrashamiz."
+       -> "Bugun o'n olti iyul ikki ming yigirma olti, soat o'n to'rt o'ttiz da uchrashamiz."
+
+   Almashtirish avval bajarilgani uchun atamaning natijasi (masalan "si-pi-yu 2")
+   ham normalize'dan o'tadi va undagi sonlar so'zga aylanadi.
+
+Atamalar ro'yxati alohida JSON faylda saqlanadi va manzili input orqali so'raladi.
 Manzil kiritilmasa (Enter), almashtirish bosqichi o'tkazib yuboriladi.
 
 JSON fayl ko'rinishi (namuna: terms.example.json):
@@ -23,8 +28,19 @@ JSON fayl ko'rinishi (namuna: terms.example.json):
       "kubernetes": "kubernites"
     }
 
-Almashtirish katta-kichik harfga qaramaydi va faqat butun so'zlarga qo'llaniladi
-("docker" almashadi, "dockerfile" esa tegilmaydi).
+ALMASHTIRISH QOIDASI: atama faqat IKKI TOMONIDA HAM BO'SHLIQ bo'lgandagina
+almashtiriladi (matn boshi va oxiri ham bo'shliq deb qaraladi). Boshqa hech qanday
+holatda tegilmaydi:
+
+    "docker run"      -> almashadi
+    "docker."         -> TEGILMAYDI (o'ngida nuqta)
+    "docker'ni"       -> TEGILMAYDI (o'ngida apostrof)
+    "dockerfile"      -> TEGILMAYDI
+
+Ya'ni JSON dagi kalit matndagi so'zning AYNAN o'zi bo'lishi kerak. Nuqta/vergul
+oldidagi yoki qo'shimchali shakllarni ham almashtirmoqchi bo'lsangiz, o'sha
+shakllarni ("docker'ni", "docker.") alohida kalit qilib qo'shing.
+Katta-kichik harfga qaralmaydi.
 """
 
 from __future__ import annotations
@@ -107,9 +123,9 @@ def normalize_srt(
     changed = 0
     normalized: list[Cue] = []
     for cue in cues:
-        text = normalize(cue.text, mode=NORMALIZE_MODE)
-        if pattern is not None:
-            text = pattern.sub(lambda match: replacements[match.group(0).lower()], text)
+        # 1) normalize.json qoidalari, 2) undan keyin uztts.normalize.
+        text = replace_terms(cue.text, pattern, replacements)
+        text = normalize(text, mode=NORMALIZE_MODE)
         text = re.sub(r"\s+", " ", text).strip()
         if text != cue.text:
             changed += 1
@@ -163,17 +179,30 @@ def load_replacements(path: str | Path | None) -> dict[str, str]:
 
 
 def build_pattern(replacements: dict[str, str]) -> re.Pattern[str] | None:
-    """Atamalarni butun so'z sifatida topadigan regex yasash."""
+    """Atamalarni FAQAT ikki tomonida bo'shliq bo'lgan holda topadigan regex yasash.
+
+    `(?<= )` va `(?= )` — bo'shliqni "iste'mol qilmaydigan" tekshiruvlar, shuning
+    uchun yonma-yon turgan ikkita atama ham (`docker run`) ikkalasi almashadi.
+    """
     if not replacements:
         return None
     # ENG UZUNIDAN boshlab tartiblaymiz — regex alternatsiyasida Python birinchi
-    # mos kelgan variantni oladi, eng uzunini emas. Aks holda "kubernetes api"
-    # o'rniga faqat "kubernetes" almashib, qolgan qismi tegilmay qolardi.
-    # ("container" va "containers" kabi juftliklarni esa `\b` chegarasi ham
-    # himoyalaydi: "containers" ichidagi "container" dan keyin so'z chegarasi
-    # yo'q, shuning uchun u mos kelmaydi.)
+    # mos kelgan variantni oladi, eng uzunini emas. Aks holda "docker compose"
+    # o'rniga faqat "docker" almashib, qolgan qismi tegilmay qolardi.
     terms = sorted(replacements, key=len, reverse=True)
-    return re.compile(r"\b(?:" + "|".join(re.escape(term) for term in terms) + r")\b", re.IGNORECASE)
+    return re.compile(r"(?<= )(?:" + "|".join(re.escape(term) for term in terms) + r")(?= )", re.IGNORECASE)
+
+
+def replace_terms(text: str, pattern: re.Pattern[str] | None, replacements: dict[str, str]) -> str:
+    """Matndagi atamalarni normalize.json bo'yicha almashtirish.
+
+    Matn boshi va oxiri ham bo'shliq deb qaraladi — shuning uchun matnni vaqtincha
+    bo'shliq bilan o'rab olamiz va oxirida o'sha ikki bo'shliqni olib tashlaymiz.
+    """
+    if pattern is None:
+        return text
+    padded = pattern.sub(lambda match: replacements[match.group(0).lower()], f" {text} ")
+    return padded[1:-1]
 
 
 if __name__ == "__main__":

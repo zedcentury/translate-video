@@ -453,16 +453,9 @@ Atamalar JSON fayli manzilini kiriting (/path/to/docker/normalize.json) (o'tkazi
 
 **Natija:** `/path/to/docker/docker-uz-normalized.srt`
 
-Bu bosqich ikki ishni bajaradi:
+Bu bosqich ikki ishni **shu tartibda** bajaradi:
 
-**1) Sonlar, sanalar va vaqtni so'zga aylantiradi** (`uztts.normalize`) — TTS raqamlarni o'qiy olmaydi:
-
-```
-Bugun 16.07.2026, soat 14:30 da uchrashamiz.
-→ Bugun o'n olti iyul ikki ming yigirma olti, soat o'n to'rt o'ttiz da uchrashamiz.
-```
-
-**2) Inglizcha atamalarni almashtiradi** (ixtiyoriy) — tarjima qilinmaydigan atamalarni TTS noto'g'ri talaffuz qiladi.
+**1) Inglizcha atamalarni almashtiradi** (ixtiyoriy) — tarjima qilinmaydigan atamalarni TTS noto'g'ri talaffuz qiladi.
 Ro'yxat JSON faylda beriladi:
 
 ```json
@@ -479,8 +472,30 @@ Namuna sifatida `terms.example.json` fayli bor — uni nusxalab, o'zingizga mosl
 cp terms.example.json /path/to/docker/normalize.json
 ```
 
-Almashtirish katta-kichik harfga qaramaydi va faqat **butun so'zlarga** qo'llaniladi —
-`Docker` → `do'ker`, lekin `dockerfile` tegilmaydi.
+Almashtirish katta-kichik harfga qaramaydi, lekin atama **faqat ikki tomonida ham bo'shliq** bo'lganda
+almashtiriladi (matn boshi va oxiri ham bo'shliq deb qaraladi). Boshqa hech qanday holatda tegilmaydi:
+
+| Matn | Natija | Sabab |
+|---|---|---|
+| `docker run` | ✅ `do'ker run` | ikki tomonida bo'shliq |
+| `docker` (butun blok) | ✅ `do'ker` | matn boshi/oxiri ham chegara |
+| `docker.` | ❌ tegilmaydi | o'ngida nuqta |
+| `docker'ni` | ❌ tegilmaydi | o'ngida apostrof |
+| `dockerfile` | ❌ tegilmaydi | boshqa so'z ichida |
+
+Ya'ni JSON dagi kalit matndagi so'zning **aynan o'zi** bo'lishi kerak. Nuqta/vergul oldidagi yoki
+qo'shimchali shakllarni ham almashtirmoqchi bo'lsangiz, ularni alohida kalit qilib qo'shing
+(`"docker'ni": "do'kerni"`, `"docker.": "do'ker."`).
+
+**2) Sonlar, sanalar va vaqtni so'zga aylantiradi** (`uztts.normalize`) — TTS raqamlarni o'qiy olmaydi:
+
+```
+Bugun 16.07.2026, soat 14:30 da uchrashamiz.
+→ Bugun o'n olti iyul ikki ming yigirma olti, soat o'n to'rt o'ttiz da uchrashamiz.
+```
+
+Almashtirish birinchi bajarilgani uchun atamaning natijasi ham normalize'dan o'tadi: `"Node": "No'd 2 ta"`
+bo'lsa, yakunda `No'd ikki ta` chiqadi.
 
 Atamalar kerak bo'lmasa, savolda shunchaki **Enter** bosing — faqat normalize bajariladi.
 
