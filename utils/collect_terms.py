@@ -91,28 +91,18 @@ def collect_tokens(root: Path) -> tuple[Counter[str], int, list[str]]:
     return tokens, files_read, missing
 
 
-def build_reading_pattern(replacements: dict[str, str]) -> re.Pattern[str]:
-    """So'z ICHIDAN atamani topadigan regex (bo'shliq talab qilinmaydi).
+def reading_for(token: str, term: str, reading: str) -> str:
+    """So'z boshidagi atamani o'qilishiga almashtirib, qolganini o'z holicha qoldirish.
 
-    Eng uzun atama birinchi tekshiriladi, aks holda "containers" ichidagi
-    "container" mos kelib, o'qilishi noto'g'ri yig'ilardi.
+    FAQAT boshidagi atama almashadi. Aks holda so'z ichida tasodifan yana o'sha
+    atama uchrasa, u ham almashib ketardi: "ID'sidan" ichida "id" ikki marta bor
+    ("ID" va "s-id-an"), natijada "Ay-di'say-dian" chiqardi.
     """
-    terms = sorted(replacements, key=len, reverse=True)
-    return re.compile("|".join(re.escape(term) for term in terms), re.IGNORECASE)
-
-
-def reading_for(token: str, pattern: re.Pattern[str], replacements: dict[str, str]) -> str:
-    """So'z ichidagi atamalarni o'qilishiga almashtirib, to'liq o'qilishni yasash."""
-
-    def substitute(match: re.Match[str]) -> str:
-        found = match.group(0)
-        value = replacements[found.lower()]
-        # Matndagi so'z bosh harf bilan boshlangan bo'lsa, o'qilishi ham shunday bo'lsin.
-        if found[:1].isupper() and value[:1].islower():
-            value = value[:1].upper() + value[1:]
-        return value
-
-    return pattern.sub(substitute, token)
+    head, tail = token[: len(term)], token[len(term):]
+    # Matndagi so'z bosh harf bilan boshlangan bo'lsa, o'qilishi ham shunday bo'lsin.
+    if head[:1].isupper() and reading[:1].islower():
+        reading = reading[:1].upper() + reading[1:]
+    return reading + tail
 
 
 def safe_filename(term: str) -> str:
@@ -129,7 +119,6 @@ def write_term_files(
     Returns:
         (yozilgan fayllar soni, jami shakllar soni, [(atama, shakllar soni), ...]).
     """
-    pattern = build_reading_pattern(replacements)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     written = 0
@@ -140,7 +129,7 @@ def write_term_files(
         # Faqat SHU ATAMA BILAN BOSHLANADIGAN so'zlar olinadi (katta-kichik harfga
         # qaralmaydi): "id" -> "identificator", "Identificator" — ha; "pid" — yo'q.
         forms = {
-            token: reading_for(token, pattern, replacements)
+            token: reading_for(token, term, replacements[term])
             for token in tokens
             if token.lower().startswith(term)
         }
