@@ -255,7 +255,7 @@ Atamalar kerak bo'lmasa, keyingi bosqichda savolga shunchaki Enter bosing.
 ```
 Tarjima qilingan .srt fayl manzilini kiriting (...): assets/movies/interstellar/interstellar-uz.srt
 Normalize qilingan .srt qayerga saqlansin [.../interstellar-uz-normalized.srt]: ⏎
-Atamalar JSON fayli manzilini kiriting (/path/to/docker/terms.json) (o'tkazib yuborish uchun Enter): ⏎
+Atamalar JSON fayli manzilini kiriting (/path/to/movie/full_terms.json) (o'tkazib yuborish uchun Enter): ⏎
 ```
 
 > Qavs ichidagi manzil — namuna, default emas. Enter bossangiz atamalar almashtirilmaydi (kino uchun ko'pincha

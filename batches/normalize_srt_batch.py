@@ -8,7 +8,7 @@ Dastur boshida so'raladigan qiymatlar:
     2. Start      — necha raqamdan boshlansin (masalan 14 -> docker14 dan)
     3. End        — qaysi raqamgacha (masalan 20 -> docker20 ham bajariladi)
     4. Til        — tarjima tili kodi (default: uz) — `<papka>-uz.srt` shundan topiladi
-    5. Atamalar   — umumiy terms.json manzili (Enter — almashtirishsiz)
+    5. Atamalar   — umumiy full_terms.json manzili (Enter — almashtirishsiz)
     6. Qayta      — tayyor natijalar qayta hisoblansinmi (default: yo'q)
 
 Ichki papkalar nomi ota papka nomidan kelib chiqadi: `docker` -> `docker1`,
@@ -16,9 +16,9 @@ Ichki papkalar nomi ota papka nomidan kelib chiqadi: `docker` -> `docker1`,
 
     docker14/docker14-uz.srt  ->  docker14/docker14-uz-normalized.srt
 
-Atamalar ro'yxati: agar papka ichida `<papka nomi>-terms.json` bo'lsa, aynan
-o'sha ishlatiladi; bo'lmasa — boshida so'ralgan umumiy JSON. Ikkalasi ham
-bo'lmasa, faqat sonlar/sanalar so'zga aylantiriladi.
+Atamalar ro'yxati boshida bir marta so'raladi (`full_terms.json`) va barcha
+papkalarga bir xil qo'llanadi. Berilmasa, faqat sonlar/sanalar so'zga
+aylantiriladi.
 
 Bosqich bepul va tez (hammasi lokal), lekin bitta fayl xato bersa quvur
 to'xtamaydi — oxirida umumiy hisobot chiqadi.
@@ -51,9 +51,6 @@ from utils.common import (  # noqa: E402
 
 # Papka nomining oxiridagi raqamni ajratib olish: "docker18" -> 18
 TRAILING_NUMBER = re.compile(r"(\d+)$")
-
-# Papka ichidagi shaxsiy atamalar fayli: docker14/docker14-terms.json
-TERMS_SUFFIX = "-terms.json"
 
 
 @dataclass
@@ -120,12 +117,6 @@ def collect_jobs(
     return jobs
 
 
-def terms_for(job: Job, common_terms: Path | None) -> Path | None:
-    """Papkaning o'z atamalar fayli bo'lsa o'shani, aks holda umumiysini olish."""
-    own = job.folder / f"{job.name}{TERMS_SUFFIX}"
-    return own if own.is_file() else common_terms
-
-
 def ask_start() -> int | None:
     """Boshlanish raqamini so'rash. Bo'sh Enter — boshidan boshlanadi."""
     while True:
@@ -177,7 +168,7 @@ def main() -> None:
         fail("Til kodi bo'sh bo'lmasligi kerak.")
 
     common_terms = ask_optional_path(
-        f"Umumiy atamalar JSON fayli ({root / 'terms.json'})"
+        f"Umumiy atamalar JSON fayli ({root / 'full_terms.json'})"
     )
     redo = ask_yes_no("Tayyor natijalar qayta hisoblansinmi?", default=False)
 
@@ -210,15 +201,11 @@ def main() -> None:
             skipped.append(job.name)
             continue
 
-        terms_path = terms_for(job, common_terms)
-        if terms_path is not None and terms_path.parent == job.folder:
-            print(f"  Papkaning o'z atamalari: {terms_path.name}")
-
         try:
             normalize_srt(
                 job.srt_path,
                 output_path,
-                replacements_path=terms_path,
+                replacements_path=common_terms,
                 # Batch rejimida savol berilmasligi kerak: atamalar bo'lmasa,
                 # shunchaki almashtirishsiz davom etadi.
                 ask_replacements=False,

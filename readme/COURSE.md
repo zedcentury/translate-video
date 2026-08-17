@@ -413,7 +413,7 @@ shakllar almashadi.)
 ```
 Tarjima qilingan .srt fayl manzilini kiriting (...): assets/docker/docker1/docker1-uz.srt
 Normalize qilingan .srt qayerga saqlansin [.../docker1-uz-normalized.srt]: ⏎
-Atamalar JSON fayli manzilini kiriting (/path/to/docker/terms.json) (o'tkazib yuborish uchun Enter): assets/docker/full_terms.json
+Atamalar JSON fayli manzilini kiriting (/path/to/docker/full_terms.json) (o'tkazib yuborish uchun Enter): assets/docker/full_terms.json
 ```
 
 **Butun kurs uchun:**
@@ -427,7 +427,7 @@ Path (video papkalari joylashgan ota papka): assets/docker
 Start (masalan 14 -> docker14 dan boshlanadi) [1]: 1
 End (masalan 20 -> docker20 gacha, docker20 ham kiradi) [oxirigacha]: ⏎
 Tarjima tili (til kodi) [uz]: ⏎
-Umumiy atamalar JSON fayli (assets/docker/terms.json) (o'tkazib yuborish uchun Enter): assets/docker/full_terms.json
+Umumiy atamalar JSON fayli (assets/docker/full_terms.json) (o'tkazib yuborish uchun Enter): assets/docker/full_terms.json
 Tayyor natijalar qayta hisoblansinmi? [ha/Yo'q]: ⏎
 ```
 
@@ -455,8 +455,7 @@ Bugun 16.07.2026, soat 14:30 da uchrashamiz.
 → Bugun o'n olti iyul ikki ming yigirma olti, soat o'n to'rt o'ttiz da uchrashamiz.
 ```
 
-Bitta darsga xos atamalar bo'lsa, o'sha papkada `docker14-terms.json` yarating — u umumiy fayldan ustun
-turadi.
+Atamalar fayli bir marta ko'rsatiladi va butun kursga — hamma darsga — bir xil qo'llanadi.
 
 Bosqich bepul va tez (hammasi lokal). `terms.json` ni to'ldirgach, oxirgi savolga `ha` deb javob berib
 hammasini qayta hisoblang.
