@@ -14,8 +14,11 @@ tashlab yuboriladi va yakuniy videoda faqat o'zbekcha nutq eshitiladi.
 1. Kursni yuklab olish            →  assets/docker/docker1, docker2, ...
 2. Tayyorgarlik (1-3 bosqichlar)  →  -no-audio.mp4, .wav, .srt
 3. Tarjima (4-bosqich)            →  -uz.srt
-4. Atamalar lug'ati (terms.json)  →  har bir atamaning o'qilishi
-5. Normalize (5-bosqich)          →  -uz-normalized.srt
+4. Atamalar lug'ati               →  terms.json  +  not_ready_terms.json
+   4a. avtomatik to'ldirish (fill_terms.py)
+   4b. qolganini qo'lda yozish (not_ready_terms.json)
+   4c. tayyorlarini QO'LDA terms.json ga ko'chirish
+5. Normalize (5-bosqich)          →  -uz-normalized.srt   (terms.json ko'rsatiladi)
 6. Audiolar (6-bosqich)           →  audios/*.wav
 7. Yig'ish (7-bosqich)            →  -result.mp4
 ```
@@ -319,18 +322,61 @@ inglizcha talaffuzga asoslanib:
 }
 ```
 
-So'ng `fill_terms.py` ni **qayta ishga tushiring** — to'ldirilganlar `terms.json` ga ko'chadi va
-`not_ready_terms.json` da faqat hali bo'sh qolganlari qoladi. Hammasi to'lgach, bu fayl butunlay o'chiriladi.
-
 Ishonchingiz komil bo'lmasa, tekshirish usuli: shu so'z bilan qisqa `.srt` yasab, 6-bosqichni ishga tushiring
 va chiqqan audioni tinglang.
 
+### 4.4. To'ldirilganlarni `terms.json` ga ko'chirish (qo'lda)
+
+O'qilishi yozib bo'lingan yozuvlarni **qo'lda** `terms.json` ga ko'chirasiz va `not_ready_terms.json` dan
+o'chirasiz:
+
+```json
+// not_ready_terms.json — faqat hali yozilmaganlari qoladi
+{
+  "Helm": ""
+}
+```
+
+```json
+// terms.json — ko'chirilganlar shu yerga qo'shiladi
+{
+  "container": "konteyner",
+  "Kubernetes": "kubernetis",
+  "Kubernetes'ga": "kubernetisga",
+  "deploy": "deplo'y",
+  "Maximilian": "Maksimillian"
+}
+```
+
+Shu ko'chirish tugagach, kurs papkasidagi `terms.json` keyingi bosqich uchun tayyor bo'ladi — **5-bosqichda
+aynan shu fayl ko'rsatiladi**.
+
 > Yangi aniqlangan o'qilishlarni loyiha ildizidagi umumiy `terms.json` ga ham qo'shib boring — keyingi
-> kurslarda qayta ishlatiladi.
+> kurslarda `fill_terms.py` ularni avtomatik topadi.
+
+> Agar ko'chirishni unutib, `fill_terms.py` ni qayta ishga tushirsangiz, u `not_ready_terms.json` dagi
+> to'ldirilgan yozuvlarni o'zi ham `terms.json` ga o'tkazadi — ya'ni ish yo'qolmaydi.
 
 ---
 
 ## 5. Normalize: TTS uchun matn tayyorlash
+
+Bu bosqichda 4-bo'limda tayyorlangan **kurs papkasidagi `terms.json`** ko'rsatiladi — atamalar aynan shu
+fayldan olinadi.
+
+**Bitta dars uchun:**
+
+```bash
+.venv/bin/python steps/normalize_srt.py
+```
+
+```
+Tarjima qilingan .srt fayl manzilini kiriting (...): assets/docker/docker1/docker1-uz.srt
+Normalize qilingan .srt qayerga saqlansin [.../docker1-uz-normalized.srt]: ⏎
+Atamalar JSON fayli manzilini kiriting (/path/to/docker/terms.json) (o'tkazib yuborish uchun Enter): assets/docker/terms.json
+```
+
+**Butun kurs uchun:**
 
 ```bash
 .venv/bin/python batches/normalize_srt_batch.py
