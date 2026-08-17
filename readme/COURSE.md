@@ -232,11 +232,55 @@ Loyiha ildizida umumiy `terms.json` yuritiladi — unda ilgari aniqlangan o'qili
 (`"docker": "do'ker"`, `"container": "konteyner"`, …). Kurs papkasidagi bo'sh qiymatlarni o'shandan
 to'ldirish kerak.
 
-> ⚠️ **Bu qadam uchun skript hali yozilmagan.** Reja: `utils/` ichida skript bo'ladi — u kurs papkasidagi
-> `terms.json` dagi bo'sh qiymatlarni loyiha ildizidagi umumiy `terms.json` dan to'ldiradi va topilmaganlarini
-> ro'yxat qilib ko'rsatadi. Hozircha bu qadamni qo'lda bajarasiz.
+```bash
+.venv/bin/python utils/fill_terms.py
+```
 
-Yordamchi sifatida `utils/collect_terms.py` bor — u allaqachon o'qilishi ma'lum atamalarning matndagi barcha
+```
+Kurs papkasidagi terms.json manzili: assets/docker/terms.json
+Asosiy terms.json manzili [/Users/.../translate-video/terms.json]: ⏎
+Allaqachon to'ldirilgan qiymatlar ham yangilansinmi? [ha/Yo'q]: ⏎
+```
+
+Ish yakunida kurs papkasida **ikkita** fayl qoladi:
+
+```
+assets/docker/
+├── terms.json              ← faqat o'qilishi MA'LUM so'zlar
+└── not_ready_terms.json    ← o'qilishi hali noma'lum so'zlar (qiymati bo'sh)
+```
+
+```
+  To'ldirildi          : 54
+  Tegilmadi (tayyor)   : 3
+  O'qilishi ma'lum     : 57  -> terms.json
+  O'qilishi noma'lum   : 2   -> not_ready_terms.json
+
+  not_ready_terms.json ichidagilarni qo'lda to'ldirasiz:
+    Connect
+    Terraform
+
+  To'ldirgach shu skriptni qayta ishga tushiring — ular terms.json ga o'tadi.
+```
+
+**Qoida: faqat birga-bir to'g'ri kelgan so'zlar to'ldiriladi.** So'z asosiy lug'atda aynan o'zi bo'lishi kerak
+(katta-kichik harfga qaralmaydi, natijada bosh harf saqlanadi):
+
+| Kurs lug'atidagi so'z | Asosiy lug'atda | Natija |
+|---|---|---|
+| `container` | `container` bor | ✅ `konteyner` |
+| `Container` | `container` bor | ✅ `Konteyner` (bosh harf saqlanadi) |
+| `container.` | `container.` yo'q | ❌ `not_ready_terms.json` ga |
+| `container'lar` | `container'lar` yo'q | ❌ `not_ready_terms.json` ga |
+| `Terraform` | yo'q | ❌ `not_ready_terms.json` ga |
+
+Qo'shimchali va tinish belgili shakllar **taxmin qilinmaydi** — ularning har biri asosiy lug'atda alohida kalit
+bo'lishi kerak. Bu ataylab shunday: taxmin qilinganda `log` atamasi tufayli `login` → `log`+`in` = `login`
+kabi noto'g'ri qiymatlar sezdirmasdan yozilib ketardi.
+
+Allaqachon to'ldirilgan qiymatlar tegilmaydi (oxirgi savolga `ha` desangiz — ular ham qayta hisoblanadi).
+
+Yana bir yordamchi — `utils/collect_terms.py`. U allaqachon o'qilishi ma'lum atamalarning matndagi barcha
 shakllarini topib, tayyor qiymat bilan chiqarib beradi:
 
 ```bash
@@ -263,8 +307,8 @@ Bu yozuvlarni `terms.json` ga ko'chirib qo'yasiz.
 
 ### 4.3. Qolganini qo'lda to'ldirish
 
-Umumiy lug'atda topilmagan so'zlarning o'qilishini o'zingiz yozasiz — o'zbek lotin harflarida, inglizcha
-talaffuzga asoslanib:
+`not_ready_terms.json` ni ochib, har bir so'zning o'qilishini o'zingiz yozasiz — o'zbek lotin harflarida,
+inglizcha talaffuzga asoslanib:
 
 ```json
 {
@@ -274,6 +318,9 @@ talaffuzga asoslanib:
   "Maximilian": "Maksimillian"
 }
 ```
+
+So'ng `fill_terms.py` ni **qayta ishga tushiring** — to'ldirilganlar `terms.json` ga ko'chadi va
+`not_ready_terms.json` da faqat hali bo'sh qolganlari qoladi. Hammasi to'lgach, bu fayl butunlay o'chiriladi.
 
 Ishonchingiz komil bo'lmasa, tekshirish usuli: shu so'z bilan qisqa `.srt` yasab, 6-bosqichni ishga tushiring
 va chiqqan audioni tinglang.
@@ -416,7 +463,8 @@ Kurs papkasining ildizida esa umumiy `terms.json` turadi:
 
 ```
 assets/docker/
-├── terms.json     ← butun kurs uchun atamalar lug'ati
+├── terms.json              ← o'qilishi ma'lum atamalar (5-bosqich shuni ishlatadi)
+├── not_ready_terms.json    ← o'qilishi hali yozilmagan so'zlar (hammasi to'lgach o'chadi)
 ├── docker1/
 ├── docker2/
 └── ...
