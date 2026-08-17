@@ -88,8 +88,9 @@ utils/          Umumiy yordamchilar
 ├── common.py             savollar (ask_path, ask_yes_no), ffmpeg chaqirish, vaqt formati
 ├── srt.py                .srt ni o'qish/yozish (Cue, parse_srt, write_srt)
 ├── locate_videos.py      yuklab olingan videolarni assets/ ga tartiblab joylashtiradi
-├── collect_terms.py      terms.json uchun atama shakllarini matndan yig'ib beradi
-└── fill_terms.py         kurs terms.json dagi bo'sh o'qilishlarni asosiy lug'atdan to'ldiradi
+├── collect_terms.py      atamalarning matndagi barcha shakllarini terms/ papkasiga yig'adi
+├── fill_terms.py         kurs terms.json dagi bo'sh o'qilishlarni asosiy lug'atdan to'ldiradi
+└── merge_terms.py        terms/ + terms.json -> full_terms.json (alifbo tartibida)
 
 readme/         Video turiga qarab qo'llanmalar (COURSE.md, MOVIE.md)
 assets/         Videolar va ular yonidagi barcha oraliq fayllar

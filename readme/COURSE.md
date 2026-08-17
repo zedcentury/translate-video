@@ -14,11 +14,13 @@ tashlab yuboriladi va yakuniy videoda faqat o'zbekcha nutq eshitiladi.
 1. Kursni yuklab olish            →  assets/docker/docker1, docker2, ...
 2. Tayyorgarlik (1-3 bosqichlar)  →  -no-audio.mp4, .wav, .srt
 3. Tarjima (4-bosqich)            →  -uz.srt
-4. Atamalar lug'ati               →  terms.json  +  not_ready_terms.json
-   4a. avtomatik to'ldirish (fill_terms.py)
+4. Atamalar lug'ati               →  terms.json → full_terms.json
+   4a. avtomatik to'ldirish (fill_terms.py)      →  terms.json + not_ready_terms.json
    4b. qolganini qo'lda yozish (not_ready_terms.json)
    4c. tayyorlarini QO'LDA terms.json ga ko'chirish
-5. Normalize (5-bosqich)          →  -uz-normalized.srt   (terms.json ko'rsatiladi)
+   4d. shakllarni yig'ish (collect_terms.py)     →  terms/*.json, qo'lda to'g'rilanadi
+   4e. birlashtirish (merge_terms.py)            →  full_terms.json
+5. Normalize (5-bosqich)          →  -uz-normalized.srt   (full_terms.json ko'rsatiladi)
 6. Audiolar (6-bosqich)           →  audios/*.wav
 7. Yig'ish (7-bosqich)            →  -result.mp4
 ```
@@ -296,7 +298,8 @@ terms.json manzili [assets/docker/terms.json]: ⏎
 Natija JSON fayllari qaysi papkaga saqlansin [assets/docker/terms]: ⏎
 ```
 
-Har bir atama uchun alohida fayl yaratadi — `terms/container.json`:
+Kurs papkasida `terms/` papkasi paydo bo'ladi va har bir atama uchun alohida fayl yaratiladi —
+`terms/container.json`:
 
 ```json
 {
@@ -306,7 +309,8 @@ Har bir atama uchun alohida fayl yaratadi — `terms/container.json`:
 }
 ```
 
-Bu yozuvlarni `terms.json` ga ko'chirib qo'yasiz.
+Bu fayllardagi qiymatlar **avtomatik chiqarilgan** — ularni ko'zdan kechirib, noto'g'rilarini to'g'rilaysiz.
+So'ng hammasini bitta faylga birlashtirasiz (4.5-bo'lim).
 
 ### 4.3. Qolganini qo'lda to'ldirish
 
@@ -348,8 +352,7 @@ o'chirasiz:
 }
 ```
 
-Shu ko'chirish tugagach, kurs papkasidagi `terms.json` keyingi bosqich uchun tayyor bo'ladi — **5-bosqichda
-aynan shu fayl ko'rsatiladi**.
+Shu ko'chirish tugagach, kurs papkasidagi `terms.json` tayyor bo'ladi.
 
 > Yangi aniqlangan o'qilishlarni loyiha ildizidagi umumiy `terms.json` ga ham qo'shib boring — keyingi
 > kurslarda `fill_terms.py` ularni avtomatik topadi.
@@ -357,12 +360,49 @@ aynan shu fayl ko'rsatiladi**.
 > Agar ko'chirishni unutib, `fill_terms.py` ni qayta ishga tushirsangiz, u `not_ready_terms.json` dagi
 > to'ldirilgan yozuvlarni o'zi ham `terms.json` ga o'tkazadi — ya'ni ish yo'qolmaydi.
 
+### 4.5. Hammasini birlashtirish: `full_terms.json`
+
+`terms.json` da atamalarning **asosiy shakli** turadi (`container`), `terms/` papkasida esa ularning matndagi
+**barcha shakllari** (`container'lar`, `container.`, `containerda`). 5-bosqich ikkalasini ham biladigan bitta
+fayl kutadi — shuni yasaymiz:
+
+```bash
+.venv/bin/python utils/merge_terms.py
+```
+
+```
+Path (kurs papkasi): assets/docker
+Shakllar papkasi (collect_terms.py natijasi) [assets/docker/terms]: ⏎
+Kurs terms.json manzili [assets/docker/terms.json]: ⏎
+```
+
+```
+  terms.json: 572 ta yozuv
+  terms/: 493 ta fayl, 7663 ta yozuv
+
+  Jami yozuv         : 5770
+  Bo'sh (tashlandi)  : 0
+  Ziddiyat           : 0
+  Natija             : assets/docker/full_terms.json
+```
+
+- Natija **alifbo tartibida** `assets/docker/full_terms.json` ga yoziladi.
+- Tartib: avval `terms.json`, ustiga `terms/` papkasidagi fayllar — ya'ni **qo'lda to'g'rilagan shakllar
+  ustun** turadi.
+- Bir xil so'zga turlicha o'qilish uchrasa, oxirgisi olinadi va ekranda ro'yxat qilib ko'rsatiladi — ko'zdan
+  kechirib chiqing.
+- Qiymati bo'sh yozuvlar natijaga **qo'shilmaydi**: 5-bosqichda ular so'zni matndan o'chirib yuborardi.
+
+`full_terms.json` — `terms.json` ning to'liq varianti (uning hamma yozuvi + shakllar). **5-bosqichda aynan shu
+fayl ko'rsatiladi.**
+
 ---
 
 ## 5. Normalize: TTS uchun matn tayyorlash
 
-Bu bosqichda 4-bo'limda tayyorlangan **kurs papkasidagi `terms.json`** ko'rsatiladi — atamalar aynan shu
-fayldan olinadi.
+Bu bosqichda 4-bo'limda tayyorlangan **kurs papkasidagi `full_terms.json`** ko'rsatiladi — atamalar aynan shu
+fayldan olinadi. (`terms/` papkasini yig'magan bo'lsangiz, `terms.json` ni ko'rsatasiz — u holda faqat asosiy
+shakllar almashadi.)
 
 **Bitta dars uchun:**
 
@@ -373,7 +413,7 @@ fayldan olinadi.
 ```
 Tarjima qilingan .srt fayl manzilini kiriting (...): assets/docker/docker1/docker1-uz.srt
 Normalize qilingan .srt qayerga saqlansin [.../docker1-uz-normalized.srt]: ⏎
-Atamalar JSON fayli manzilini kiriting (/path/to/docker/terms.json) (o'tkazib yuborish uchun Enter): assets/docker/terms.json
+Atamalar JSON fayli manzilini kiriting (/path/to/docker/terms.json) (o'tkazib yuborish uchun Enter): assets/docker/full_terms.json
 ```
 
 **Butun kurs uchun:**
@@ -387,7 +427,7 @@ Path (video papkalari joylashgan ota papka): assets/docker
 Start (masalan 14 -> docker14 dan boshlanadi) [1]: 1
 End (masalan 20 -> docker20 gacha, docker20 ham kiradi) [oxirigacha]: ⏎
 Tarjima tili (til kodi) [uz]: ⏎
-Umumiy atamalar JSON fayli (assets/docker/terms.json) (o'tkazib yuborish uchun Enter): assets/docker/terms.json
+Umumiy atamalar JSON fayli (assets/docker/terms.json) (o'tkazib yuborish uchun Enter): assets/docker/full_terms.json
 Tayyor natijalar qayta hisoblansinmi? [ha/Yo'q]: ⏎
 ```
 
