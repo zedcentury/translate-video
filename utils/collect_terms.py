@@ -17,6 +17,10 @@ Matn `<papka>/<papka nomi>-uz-normalized.srt` fayllaridan olinadi (5-bosqich
 natijasi). Ya'ni allaqachon almashtirilgan so'zlar u yerda yo'q — natijada faqat
 HALI QAMRAB OLINMAGAN shakllar to'planadi.
 
+TANLASH QOIDASI: so'z atama BILAN BOSHLANGANDAGINA olinadi (katta-kichik harfga
+qaralmaydi). Ya'ni `id` atamasi uchun `identificator` va `Identificator` olinadi,
+`pid` esa olinmaydi.
+
 Har bir atama uchun `<natija papkasi>/<atama>.json` yaratiladi:
 
     container.json
@@ -133,10 +137,12 @@ def write_term_files(
     summary: list[tuple[str, int]] = []
 
     for term in sorted(replacements):
+        # Faqat SHU ATAMA BILAN BOSHLANADIGAN so'zlar olinadi (katta-kichik harfga
+        # qaralmaydi): "id" -> "identificator", "Identificator" — ha; "pid" — yo'q.
         forms = {
             token: reading_for(token, pattern, replacements)
             for token in tokens
-            if term in token.lower()
+            if token.lower().startswith(term)
         }
         if not forms:
             continue
