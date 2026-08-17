@@ -8,7 +8,7 @@ Dastur boshida so'raladigan qiymatlar:
     2. Start      — necha raqamdan boshlansin (masalan 14 -> docker14 dan)
     3. End        — qaysi raqamgacha (masalan 20 -> docker20 ham bajariladi)
     4. Til        — tarjima tili kodi (default: uz) — `<papka>-uz.srt` shundan topiladi
-    5. Atamalar   — umumiy normalize.json manzili (Enter — almashtirishsiz)
+    5. Atamalar   — umumiy terms.json manzili (Enter — almashtirishsiz)
     6. Qayta      — tayyor natijalar qayta hisoblansinmi (default: yo'q)
 
 Ichki papkalar nomi ota papka nomidan kelib chiqadi: `docker` -> `docker1`,
@@ -16,7 +16,7 @@ Ichki papkalar nomi ota papka nomidan kelib chiqadi: `docker` -> `docker1`,
 
     docker14/docker14-uz.srt  ->  docker14/docker14-uz-normalized.srt
 
-Atamalar ro'yxati: agar papka ichida `<papka nomi>-normalize.json` bo'lsa, aynan
+Atamalar ro'yxati: agar papka ichida `<papka nomi>-terms.json` bo'lsa, aynan
 o'sha ishlatiladi; bo'lmasa — boshida so'ralgan umumiy JSON. Ikkalasi ham
 bo'lmasa, faqat sonlar/sanalar so'zga aylantiriladi.
 
@@ -52,8 +52,8 @@ from utils.common import (  # noqa: E402
 # Papka nomining oxiridagi raqamni ajratib olish: "docker18" -> 18
 TRAILING_NUMBER = re.compile(r"(\d+)$")
 
-# Papka ichidagi shaxsiy atamalar fayli: docker14/docker14-normalize.json
-TERMS_SUFFIX = "-normalize.json"
+# Papka ichidagi shaxsiy atamalar fayli: docker14/docker14-terms.json
+TERMS_SUFFIX = "-terms.json"
 
 
 @dataclass
@@ -177,7 +177,7 @@ def main() -> None:
         fail("Til kodi bo'sh bo'lmasligi kerak.")
 
     common_terms = ask_optional_path(
-        f"Umumiy atamalar JSON fayli ({root / 'normalize.json'})"
+        f"Umumiy atamalar JSON fayli ({root / 'terms.json'})"
     )
     redo = ask_yes_no("Tayyor natijalar qayta hisoblansinmi?", default=False)
 

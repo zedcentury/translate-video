@@ -2,7 +2,7 @@
 
 Ikki amal SHU TARTIBDA bajariladi:
 
-1. ATAMALAR ALMASHTIRILADI (normalize.json). Tarjima qilinmaydigan inglizcha
+1. ATAMALAR ALMASHTIRILADI (terms.json). Tarjima qilinmaydigan inglizcha
    atamalar TTS tomonidan noto'g'ri o'qiladi, shuning uchun ularni o'zbekcha
    talaffuziga yaqin ko'rinishga o'tkazamiz:
 
@@ -104,7 +104,7 @@ def normalize_srt(
 
     if replacements_path is None and ask_replacements:
         replacements_path = ask_optional_path(
-            "Atamalar JSON fayli manzilini kiriting (/path/to/docker/normalize.json)"
+            "Atamalar JSON fayli manzilini kiriting (/path/to/docker/terms.json)"
         )
 
     replacements = load_replacements(replacements_path)
@@ -123,7 +123,7 @@ def normalize_srt(
     changed = 0
     normalized: list[Cue] = []
     for cue in cues:
-        # 1) normalize.json qoidalari, 2) undan keyin uztts.normalize.
+        # 1) terms.json qoidalari, 2) undan keyin uztts.normalize.
         text = replace_terms(cue.text, pattern, replacements)
         text = normalize(text, mode=NORMALIZE_MODE)
         text = re.sub(r"\s+", " ", text).strip()
@@ -194,7 +194,7 @@ def build_pattern(replacements: dict[str, str]) -> re.Pattern[str] | None:
 
 
 def replace_terms(text: str, pattern: re.Pattern[str] | None, replacements: dict[str, str]) -> str:
-    """Matndagi atamalarni normalize.json bo'yicha almashtirish.
+    """Matndagi atamalarni terms.json bo'yicha almashtirish.
 
     Matn boshi va oxiri ham bo'shliq deb qaraladi — shuning uchun matnni vaqtincha
     bo'shliq bilan o'rab olamiz va oxirida o'sha ikki bo'shliqni olib tashlaymiz.

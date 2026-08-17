@@ -1,94 +1,113 @@
-# Kinolarni dublyaj qilish (`modes/movie.py`)
+# Kinoni o'zbek tiliga dublyaj qilish
 
-Kino, film, serial kabi videolar uchun. Bunday videolarda fon musiqasi, effektlar va tabiat tovushlari
-ahamiyatli, shuning uchun **1-bosqichda audio butunlay tashlanmaydi** — demucs orqali undan faqat odam nutqi
-ajratib olinadi, fon esa joyida qoladi va yakuniy videoda o'zbekcha nutq ostida eshitiladi.
+Boshidan oxirigacha: kino faylini tayyorlashdan tortib, o'zbekcha ovozli tayyor videoni olgunga qadar.
 
-> Kurs, ma'ruza, skrinkast uchun [COURSE.md](COURSE.md) ga qarang — u yerda audio butunlay tashlanadi.
+Kinoda fon musiqasi, effektlar va tabiat tovushlari ahamiyatli, shuning uchun bu yo'lda video ovozi butunlay
+tashlanmaydi — **demucs orqali undan faqat odam nutqi ajratib olinadi**, fon esa joyida qoladi va yakuniy
+videoda o'zbekcha nutq ostida eshitiladi.
 
-O'rnatish va umumiy struktura — loyiha ildizidagi [README.md](../README.md) da.
+> Kurs, ma'ruza, skrinkast uchun [COURSE.md](COURSE.md) ga qarang. O'rnatish va fayllar ma'lumotnomasi —
+> [README.md](../README.md) da.
+
+**Umumiy yo'l xaritasi:**
+
+```
+1. Faylni joylashtirish           →  assets/movies/interstellar/interstellar.mp4
+2. Nutqni ajratish (1b-bosqich)   →  -removed-vocal.mp4   (demucs, sekin)
+3. Audio + transkripsiya (2-3)    →  .wav, .srt
+4. Tarjima (4-bosqich)            →  -uz.srt
+5. Ismlar lug'ati (terms.json)    →  ixtiyoriy
+6. Normalize (5-bosqich)          →  -uz-normalized.srt
+7. Audiolar (6-bosqich)           →  audios/*.wav
+8. Yig'ish (7-bosqich)            →  -result.mp4
+```
+
+Yoki hammasini bitta komanda bilan — [§2](#2-eng-oson-yol-butun-quvur-bitta-komanda-bilan).
 
 ---
 
-## Qo'shimcha talab: demucs
+## 1. Tayyorgarlik
 
-Bu rejim demucs'ga tayanadi (model birinchi ishlatilganda ~300 MB yuklab olinadi):
+### 1.1. Qo'shimcha talab: demucs
+
+Bu yo'l demucs'ga tayanadi (model birinchi ishlatilganda ~300 MB yuklab olinadi):
 
 ```bash
 .venv/bin/pip install demucs
 ```
 
-1-bosqich **sekin**: CPU da taxminan real vaqtda ishlaydi (1 soatlik kino ≈ 1 soat). Apple Silicon'da
-tezlashtirish uchun:
+### 1.2. Faylni joylashtirish
+
+Kino bitta fayl bo'lgani uchun kurs kabi papkalarga tartiblash shart emas. Faqat **video uchun alohida papka**
+oching — quvur barcha oraliq fayllarni video yoniga yozadi:
+
+```
+assets/movies/interstellar/
+└── interstellar.mp4
+```
+
+### 1.3. Claude Code'ni tayyorlash
+
+Tarjima Claude Code'ning headless rejimi orqali bajariladi:
 
 ```bash
-DEMUCS_DEVICE=mps .venv/bin/python modes/movie.py
+npm install -g @anthropic-ai/claude-code
+claude
 ```
+
+`claude` ni bir marta ishga tushirib, brauzer orqali tizimga kiring. Buning uchun **Claude obunasi bo'lishi
+kerak** — tarjima o'sha obuna hisobidan foydalanadi.
 
 ---
 
-## Tez yo'l: butun quvurni bir komanda bilan
+## 2. Eng oson yo'l: butun quvur bitta komanda bilan
 
 ```bash
 .venv/bin/python modes/movie.py
 ```
 
 ```
-Video fayl manzilini kiriting (/path/to/movie/movie.mp4): /path/to/movie/movie.mp4
+Video fayl manzilini kiriting (/path/to/movie/movie.mp4): assets/movies/interstellar/interstellar.mp4
 ```
 
-`/path/to/movie/movie.mp4` berilganda quyidagi fayllar shu tartibda ishga tushadi:
+Quyidagi fayllar shu tartibda ishga tushadi:
 
 ```
-[1/7] steps/remove_vocals.py     movie.mp4                  -> movie-removed-vocal.mp4  (demucs)
-[2/7] steps/extract_audio.py     movie.mp4                  -> movie.wav
-[3/7] steps/generate_srt.py      movie.wav                  -> movie.srt
-[4/7] steps/translate_srt.py     movie.srt                  -> movie-uz.srt             (claude -p)
-[5/7] steps/normalize_srt.py     movie-uz.srt               -> movie-uz-normalized.srt
-[6/7] steps/generate_audios.py   movie-uz-normalized.srt    -> audios/*.wav
-[7/7] steps/merge_audios.py      movie-removed-vocal.mp4 + audios/  -> movie-result.mp4
+[1/7] steps/remove_vocals.py     interstellar.mp4                -> interstellar-removed-vocal.mp4  (demucs)
+[2/7] steps/extract_audio.py     interstellar.mp4                -> interstellar.wav
+[3/7] steps/generate_srt.py      interstellar.wav                -> interstellar.srt
+[4/7] steps/translate_srt.py     interstellar.srt                -> interstellar-uz.srt             (claude -p)
+[5/7] steps/normalize_srt.py     interstellar-uz.srt             -> interstellar-uz-normalized.srt
+[6/7] steps/generate_audios.py   interstellar-uz-normalized.srt  -> audios/*.wav
+[7/7] steps/merge_audios.py      interstellar-removed-vocal.mp4 + audios/  -> interstellar-result.mp4
 ```
 
 > **Diqqat:** 2-bosqich transkripsiya uchun **asl** videodan audio oladi (inglizcha nutq faqat o'sha yerda),
 > 7-bosqich esa 1-bosqichda tayyorlangan nutqsiz videoni ishlatadi.
 
-Rejim ishga tushgach dastur o'zi ishlaydi va faqat quyidagi joylarda to'xtaydi:
+Dastur faqat quyidagi joylarda to'xtaydi:
 
-1. `-removed-vocal` video allaqachon mavjud bo'lsa — qayta yasashni so'raydi (Enter = yo'q)
-2. `.srt` allaqachon mavjud bo'lsa — qayta generatsiya qilishni so'raydi (Enter = yo'q)
-3. **4-bosqich** — tarjima allaqachon mavjud bo'lsa, qayta tarjima qilishni so'raydi (Enter = yo'q)
+1. `-removed-vocal` video mavjud bo'lsa — qayta yasashni so'raydi (Enter = yo'q)
+2. `.srt` mavjud bo'lsa — qayta generatsiya qilishni so'raydi (Enter = yo'q)
+3. **4-bosqich** — tarjima mavjud bo'lsa, qayta tarjima qilishni so'raydi (Enter = yo'q)
 4. **5-bosqich** — atamalar JSON faylini so'raydi (kerak bo'lmasa Enter)
 
----
+Kino uzun bo'lgani uchun butun jarayon bir necha soat davom etadi. Uzilib qolsa, qaytadan ishga tushiring —
+tayyor natijalar qayta hisoblanmaydi.
 
-## Kurs rejimidan farqi
-
-Faqat **ikki joyda**:
-
-| | `course.py` | `movie.py` |
-|---|---|---|
-| 1-bosqich | `remove_audio.py` — audio oqimi tashlanadi | `remove_vocals.py` — demucs faqat nutqni oladi |
-| oraliq video | `movie-no-audio.mp4` (ovozsiz) | `movie-removed-vocal.mp4` (fon ovozi bilan) |
-| 7-bosqich | videoda audio yo'q — faqat o'zbekcha nutq | videoda fon bor — u ham aralashmaga tushadi |
-
-Qolgan bosqichlar (2-6) mutlaqo bir xil.
+Quyida esa har bir bosqich alohida — natijani nazorat qilib borish yoki biror bosqichni qayta bajarish uchun.
 
 ---
 
-## Bosqichma-bosqich: `/path/to/movie/movie.mp4` misolida
-
-Har bir bosqichni alohida ham ishga tushirish mumkin. Barcha savollarda kvadrat qavs ichidagi qiymat —
-default; **Enter** bosish kifoya.
-
-### 1-bosqich — videodan odam nutqini olib tashlash
+## 3. 1-bosqich — nutqni fondan ajratish
 
 ```bash
 .venv/bin/python steps/remove_vocals.py
 ```
 
 ```
-Video fayl manzilini kiriting (/path/to/movie/movie.mp4): /path/to/movie/movie.mp4
-Nutqsiz video qayerga saqlansin [/path/to/movie/movie-removed-vocal.mp4]: ⏎
+Video fayl manzilini kiriting (...): assets/movies/interstellar/interstellar.mp4
+Nutqsiz video qayerga saqlansin [.../interstellar-removed-vocal.mp4]: ⏎
 ```
 
 Ichkarida uch amal bajariladi:
@@ -97,151 +116,186 @@ Ichkarida uch amal bajariladi:
 2. `demucs --two-stems=vocals` nutqni fondan ajratadi;
 3. nutqsiz fon audiosi videoga yagona audio oqim sifatida biriktiriladi.
 
-**Natija:** `/path/to/movie/movie-removed-vocal.mp4` — tasvir o'zgarmaydi (`-c:v copy`), ovozda inglizcha nutq
+**Natija:** `interstellar-removed-vocal.mp4` — tasvir o'zgarmaydi (`-c:v copy`), ovozda inglizcha nutq
 qolmaydi, musiqa va effektlar esa joyida. Oraliq `.wav` fayllar avtomatik o'chiriladi.
 
-Fon audiosini alohida saqlab qolmoqchi bo'lsangiz, funksiyani koddan chaqirib `background_audio` argumentini
-bering.
+Bu **eng sekin bosqich**: CPU da taxminan real vaqtda ishlaydi (2 soatlik kino ≈ 2 soat). Apple Silicon'da:
 
-| O'zgaruvchi     | Default        | Izoh                      |
-|-----------------|----------------|---------------------------|
-| `DEMUCS_MODEL`  | `htdemucs`     | nutqni ajratish modeli    |
-| `DEMUCS_DEVICE` | `cpu` / `cuda` | Apple Silicon uchun `mps` |
+```bash
+DEMUCS_DEVICE=mps .venv/bin/python steps/remove_vocals.py
+```
+
+| O'zgaruvchi     | Default        | Izoh                                    |
+|-----------------|----------------|-----------------------------------------|
+| `DEMUCS_MODEL`  | `htdemucs`     | `htdemucs_ft` — sekinroq, sifatliroq    |
+| `DEMUCS_DEVICE` | `cpu` / `cuda` | Apple Silicon uchun `mps`               |
+
+> `pipelines/prepare.py` va `batches/prepare_batch.py` bu yerda **ishlatilmaydi** — ular 1-bosqichda audioni
+> butunlay tashlaydi (kurs uchun). Kinoda 2- va 3-bosqichlarni quyidagicha alohida bajarasiz.
 
 ---
 
-### 2-bosqich — videodan audio ajratish
+## 4. 2-bosqich — transkripsiya uchun audio ajratish
 
 ```bash
 .venv/bin/python steps/extract_audio.py
 ```
 
 ```
-Video fayl manzilini kiriting (/path/to/movie/movie.mp4): /path/to/movie/movie.mp4
-Audio fayl qayerga saqlansin [/path/to/movie/movie.wav]: ⏎
+Video fayl manzilini kiriting (...): assets/movies/interstellar/interstellar.mp4
+Audio fayl qayerga saqlansin [.../interstellar.wav]: ⏎
 ```
 
-**Natija:** `/path/to/movie/movie.wav` (16 kHz mono — whisper uchun optimal)
+**Natija:** `interstellar.wav` (16 kHz mono — whisper uchun optimal)
 
 Bu yerga **asl** video beriladi, nutqsiz nusxa emas — transkripsiya uchun aynan nutq kerak.
 
 ---
 
-### 3-bosqich — transkripsiya (inglizcha `.srt`)
+## 5. 3-bosqich — inglizcha transkripsiya
 
 ```bash
 .venv/bin/python steps/generate_srt.py
 ```
 
 ```
-Audio fayl manzilini kiriting (/path/to/movie/movie.wav): /path/to/movie/movie.wav
-Transkripsiya .srt fayli qayerga saqlansin [/path/to/movie/movie.srt]: ⏎
+Audio fayl manzilini kiriting (...): assets/movies/interstellar/interstellar.wav
+Transkripsiya .srt fayli qayerga saqlansin [.../interstellar.srt]: ⏎
 Audiodagi nutq tili (auto — o'zi aniqlaydi) [en]: ⏎
 ```
 
-**Natija:** `/path/to/movie/movie.srt`
+**Natija:** `interstellar.srt`
 
-Kinoda fon musiqasi baland bo'lsa yoki bir necha odam gaplashsa, transkripsiya sifati pasayadi. Shunday
+Kinoda fon musiqasi baland bo'lsa yoki bir necha odam birga gaplashsa, transkripsiya sifati pasayadi. Shunday
 holatda to'liq modelni sinab ko'ring:
 
 ```bash
 WHISPER_MODEL=large-v3 .venv/bin/python steps/generate_srt.py
 ```
 
+**Natijani ko'zdan kechiring** — keyingi bosqichlar shu matnga tayanadi:
+
+```bash
+head -40 assets/movies/interstellar/interstellar.srt
+```
+
 ---
 
-### 4-bosqich — tarjima (Claude Code headless)
+## 6. 4-bosqich — tarjima
 
 ```bash
 .venv/bin/python steps/translate_srt.py
 ```
 
 ```
-Tarjima qilinadigan .srt fayl manzilini kiriting: /path/to/movie/movie.srt
-Tarjima qilingan .srt fayl qayerga saqlansin [/path/to/movie/movie-uz.srt]: ⏎
-  Yo'nalish: en -> uz | 640 ta subtitr
+Tarjima qilinadigan .srt fayl manzilini kiriting: assets/movies/interstellar/interstellar.srt
+Tarjima qilingan .srt fayl qayerga saqlansin [.../interstellar-uz.srt]: ⏎
+  Yo'nalish: en -> uz | 1240 ta subtitr
   Model: claude-opus-5 (effort=high) — bu biroz vaqt oladi...
-  410 ta subtitr yozildi (4 daqiqa 3 soniya, $1.8420).
+  810 ta subtitr yozildi (7 daqiqa 41 soniya, $3.2140).
 ```
 
-**Natija:** `/path/to/movie/movie-uz.srt`
+**Natija:** `interstellar-uz.srt`
 
-Butun `.srt` matni `claude -p` ga prompt sifatida beriladi va model tayyor `.srt` qaytaradi. Prompt bloklarni
-birlashtirishga ruxsat bergani uchun natijada bloklar soni kamayishi normal.
+- Timestamp'lar o'zgarmaydi; gap ikki blokka bo'linib qolgan joyda bloklar birlashtiriladi (shuning uchun
+  bloklar soni kamayishi normal).
+- Ismlar tarjima qilinmaydi — asl yozuvida qoladi.
 
-Kino uzun bo'lgani uchun bitta chaqiruv uzoq davom etadi — kerak bo'lsa vaqt chegarasini oshiring:
+Kino uzun bo'lgani uchun bitta chaqiruv uzoq davom etadi. Kerak bo'lsa vaqt chegarasini oshiring:
 
 ```bash
 CLAUDE_TIMEOUT=7200 .venv/bin/python steps/translate_srt.py
 ```
 
-| O'zgaruvchi      | Default          | Izoh                        |
-|------------------|------------------|-----------------------------|
-| `CLAUDE_MODEL`   | `claude-opus-5`  | tarjima qiladigan model     |
-| `CLAUDE_EFFORT`  | `high`           | effort darajasi             |
-| `CLAUDE_TIMEOUT` | `3600`           | bitta chaqiruv uchun sekund |
+| O'zgaruvchi      | Default         | Izoh                        |
+|------------------|-----------------|-----------------------------|
+| `CLAUDE_MODEL`   | `claude-opus-5` | tarjima qiladigan model     |
+| `CLAUDE_EFFORT`  | `high`          | effort darajasi             |
+| `CLAUDE_TIMEOUT` | `3600`          | bitta chaqiruv uchun sekund |
 
 ---
 
-### 5-bosqich — matnni TTS uchun normalize qilish
+## 7. Ismlar lug'ati: `terms.json` (ixtiyoriy)
+
+Kinoda texnik atama kam bo'ladi, lekin **ismlar va joy nomlari** noto'g'ri o'qilishi mumkin. Ularni video
+papkasida `terms.json` qilib yozib qo'yasiz:
+
+```json
+{
+  "Cooper": "Kuper",
+  "Cooper'ga": "Kuperga",
+  "Murph": "Merf",
+  "New York": "Nyu York"
+}
+```
+
+Qaysi so'zlar inglizcha qolganini ko'rish uchun o'sha papkada `claude` ni ochib so'rashingiz mumkin:
+
+```
+interstellar-uz.srt faylini o'qi. Inglizcha holida qolgan barcha so'zlarni (ismlar, joy nomlari, atamalar)
+yig'ib, shu papkada terms.json yarat. Kalit — .srt dagi aynan o'sha yozuv (qo'shimchasi bilan),
+qiymat — bo'sh string. Alifbo tartibida, faqat toza JSON.
+```
+
+So'ng har bir qiymatni o'zbek lotin harflarida, inglizcha talaffuzga asoslanib to'ldirasiz.
+
+> **Muhim:** almashtirish so'zni faqat **ikki tomonida ham bo'shliq** bo'lganda almashtiradi. Ya'ni `Cooper`
+> kaliti `Cooper'ga` yoki `Cooper.` ga ta'sir qilmaydi — har bir shakl alohida kalit bo'lishi kerak.
+
+Atamalar kerak bo'lmasa, keyingi bosqichda savolga shunchaki Enter bosing.
+
+---
+
+## 8. 5-bosqich — normalize
 
 ```bash
 .venv/bin/python steps/normalize_srt.py
 ```
 
 ```
-Tarjima qilingan .srt fayl manzilini kiriting (/path/to/movie/movie-uz.srt): /path/to/movie/movie-uz.srt
-Normalize qilingan .srt qayerga saqlansin [/path/to/movie/movie-uz-normalized.srt]: ⏎
-Atamalar JSON fayli manzilini kiriting (/path/to/movie/normalize.json) (o'tkazib yuborish uchun Enter): ⏎
+Tarjima qilingan .srt fayl manzilini kiriting (...): assets/movies/interstellar/interstellar-uz.srt
+Normalize qilingan .srt qayerga saqlansin [.../interstellar-uz-normalized.srt]: ⏎
+Atamalar JSON fayli manzilini kiriting (/path/to/docker/terms.json) (o'tkazib yuborish uchun Enter): ⏎
 ```
 
-**Natija:** `/path/to/movie/movie-uz-normalized.srt`
+> Qavs ichidagi manzil — namuna, default emas. Enter bossangiz atamalar almashtirilmaydi (kino uchun ko'pincha
+> shu yetarli). `terms.json` yaratgan bo'lsangiz, uning manzilini to'liq yozing.
 
-Kinoda texnik atamalar kam bo'ladi, shuning uchun atamalar faylini ko'pincha bo'sh qoldirsa bo'ladi (Enter) —
-u holda faqat sonlar, sanalar va vaqt so'zga aylantiriladi:
+**Natija:** `interstellar-uz-normalized.srt`
+
+Sonlar, sanalar va vaqt o'qiladigan so'zlarga aylantiriladi:
 
 ```
 Bugun 16.07.2026, soat 14:30 da uchrashamiz.
 → Bugun o'n olti iyul ikki ming yigirma olti, soat o'n to'rt o'ttiz da uchrashamiz.
 ```
 
-Ismlar va joy nomlari noto'g'ri o'qilsa, ularni JSON ga qo'shing:
-
-```json
-{
-  "Michael": "Maykl",
-  "New York": "Nyu York"
-}
-```
-
-Atama **faqat ikki tomonida ham bo'shliq** bo'lganda almashtiriladi (matn boshi va oxiri ham bo'shliq deb
-qaraladi). Ya'ni `Michael.` yoki `Michael'ga` shakllarini ham almashtirmoqchi bo'lsangiz, ularni alohida kalit
-qilib qo'shing.
+`terms.json` berilgan bo'lsa, undan oldin atamalar almashtiriladi.
 
 ---
 
-### 6-bosqich — o'zbekcha audiolar (TTS)
+## 9. 6-bosqich — o'zbekcha audiolar
 
 ```bash
 .venv/bin/python steps/generate_audios.py
 ```
 
 ```
-Normalize qilingan .srt fayl manzilini kiriting (/path/to/movie/movie-uz-normalized.srt): /path/to/movie/movie-uz-normalized.srt
-Audiolar qaysi papkaga saqlansin [/path/to/movie/audios]: ⏎
+Normalize qilingan .srt fayl manzilini kiriting (...): .../interstellar-uz-normalized.srt
+Audiolar qaysi papkaga saqlansin [.../audios]: ⏎
 ```
 
-**Natija:** `/path/to/movie/audios/00-00-01-500.wav`, `00-00-04-200.wav`, …
+**Natija:** `assets/movies/interstellar/audios/00-00-01-500.wav`, `00-00-04-200.wav`, …
 
-Fayl nomi — subtitrning **boshlanish vaqti**. 7-bosqich audioni videoga aynan shu nom bo'yicha joylashtiradi,
+Fayl nomi — subtitrning boshlanish vaqti. 7-bosqich audioni videoga aynan shu nom bo'yicha joylashtiradi,
 shuning uchun fayllarni qayta nomlamang.
 
 - Model **bir marta** yuklanadi, barcha segmentlar shu jarayonda generatsiya qilinadi
-- Papkada tayyor fayl bo'lsa, qayta generatsiya qilinmaydi (uzilgan jarayonni davom ettirish mumkin).
-  Butunlay yangilash uchun: `rm -rf /path/to/movie/audios`
+- Papkada tayyor fayl bo'lsa, qayta generatsiya qilinmaydi (uzilgan jarayonni davom ettirish mumkin)
 - Audio o'z oralig'iga sig'masa, avtomatik tezlashtiriladi (maksimum 1.5x)
+- Ovozni butunlay yangilash uchun: `rm -rf assets/movies/interstellar/audios`
 
-Kinoda hissiyot muhim. Mavjud hissiyotlar: `calm`, `happy`, `excited`, `sad`, `angry`, `nervous`, `scared`,
+Kinoda ohang muhim. Mavjud hissiyotlar: `calm`, `happy`, `excited`, `sad`, `angry`, `nervous`, `scared`,
 `surprised`, `whispers`, `warm`, `gentle`, `tired`, `sighs`, `sarcastic`
 
 ```bash
@@ -253,19 +307,19 @@ NAVOIY_EMOTION=warm NAVOIY_REFERENCE=navoiy-tts/demo/long_form.wav \
 
 ---
 
-### 7-bosqich — o'zbekcha audiolarni biriktirish
+## 10. 7-bosqich — yakuniy videoni yig'ish
 
 ```bash
 .venv/bin/python steps/merge_audios.py
 ```
 
 ```
-Ovozsiz video fayl manzilini kiriting (/path/to/movie/movie-removed-vocal.mp4): /path/to/movie/movie-removed-vocal.mp4
-Audiolar joylashgan papka manzilini kiriting [/path/to/movie/audios]: ⏎
+Ovozsiz video fayl manzilini kiriting (...): .../interstellar-removed-vocal.mp4
+Audiolar joylashgan papka manzilini kiriting [.../audios]: ⏎
 ```
 
-> **Diqqat:** bu yerda asl `movie.mp4` emas, 1-bosqichdan chiqqan `movie-removed-vocal.mp4` berilishi kerak.
-> Aks holda inglizcha nutq qaytib qo'shiladi.
+> **Diqqat:** bu yerda asl `interstellar.mp4` emas, 1-bosqichdan chiqqan `interstellar-removed-vocal.mp4`
+> berilishi kerak. Aks holda inglizcha nutq qaytib qo'shiladi.
 
 Videoda fon ovozi borligi uchun ekranda shunday chiqadi:
 
@@ -273,44 +327,45 @@ Videoda fon ovozi borligi uchun ekranda shunday chiqadi:
   Videoning o'z ovozi ham aralashmaga qo'shiladi (volume=1.0).
 ```
 
-**Natija:** `/path/to/movie/movie-result.mp4` — fon musiqasi va o'zbekcha nutq aralashgan tayyor video
+**Natija:** `interstellar-result.mp4` — fon musiqasi va o'zbekcha nutq aralashgan tayyor kino.
 
 **Fon baland tuyulsa**, [steps/merge_audios.py](../steps/merge_audios.py) dagi `ORIGINAL_VOLUME` ni `0.3`–`0.6`
 ga tushiring va faqat shu bosqichni qayta ishga tushiring — u tez ishlaydi, video qayta kodlanmaydi.
 
 ---
 
-## Fayllar xaritasi
-
-`/path/to/movie/movie.mp4` uchun quvur oxirida:
+## Yakuniy holat
 
 ```
-/path/to/movie/
-├── movie.mp4                  ← manba
-├── movie-removed-vocal.mp4    ← 1-bosqich (nutqsiz, fon ovozi bilan)
-├── movie.wav                  ← 2-bosqich (16 kHz mono)
-├── movie.srt                  ← 3-bosqich (inglizcha)
-├── movie-uz.srt               ← 4-bosqich (o'zbekcha, claude -p)
-├── normalize.json             ← ismlar/atamalar ro'yxati (ixtiyoriy)
-├── movie-uz-normalized.srt    ← 5-bosqich (TTS uchun tayyorlangan)
-├── audios/                    ← 6-bosqich
+assets/movies/interstellar/
+├── interstellar.mp4                 ← manba
+├── interstellar-removed-vocal.mp4   ← 1-bosqich (nutqsiz, fon ovozi bilan)
+├── interstellar.wav                 ← 2-bosqich
+├── interstellar.srt                 ← 3-bosqich (inglizcha)
+├── interstellar-uz.srt              ← 4-bosqich (o'zbekcha)
+├── terms.json                       ← ismlar lug'ati (ixtiyoriy)
+├── interstellar-uz-normalized.srt   ← 5-bosqich (TTS uchun)
+├── audios/                          ← 6-bosqich
 │   ├── 00-00-01-500.wav
 │   └── 00-00-04-200.wav
-└── movie-result.mp4           ← 7-bosqich (NATIJA)
+└── interstellar-result.mp4          ← 7-bosqich (NATIJA)
 ```
 
 ---
 
-## Kinoga oid maslahatlar
+## Maslahatlar
 
 **1-bosqich juda sekin.** Demucs kinoning butun uzunligini qayta ishlaydi. `DEMUCS_DEVICE=mps` ni sinab
 ko'ring; ishlamasa, tunda qoldiring — natija saqlanadi va keyingi ishga tushirishda qayta hisoblanmaydi.
 
-**Fon ovozi nutqni bosib ketyapti.** `ORIGINAL_VOLUME` ni pasaytiring (7-bosqich).
+**Fon ovozi nutqni bosib ketyapti.** `ORIGINAL_VOLUME` ni pasaytiring (10-bo'lim).
 
-**Demucs fonni ham buzib qo'ydi.** Ba'zi yozuvlarda nutq va musiqa qattiq aralashgan bo'ladi. Boshqa model
+**Demucs fonni ham buzib qo'ydi.** Ba'zi yozuvlarda nutq va musiqa qattiq aralashgan bo'ladi. Boshqa modelni
 sinab ko'ring: `DEMUCS_MODEL=htdemucs_ft` (sekinroq, sifatliroq).
 
-**Original ovoz umuman kerak emas.** Unda kino rejimi emas, kurs rejimi kerak: [COURSE.md](COURSE.md).
+**O'zbekcha nutq keyingi jumla ustiga chiqib ketyapti.** `steps/generate_audios.py` da `MAX_TEMPO` ni `1.8`
+ga ko'taring yoki `NAVOIY_SPEED=1.15` bilan generatsiya qiling.
+
+**Original ovoz umuman kerak emas.** Unda kino emas, kurs yo'li kerak: [COURSE.md](COURSE.md).
 
 **Jarayon uzilib qoldi.** Qaytadan ishga tushiring — har bir bosqich tayyor natijani qayta hisoblamaydi.

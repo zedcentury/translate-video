@@ -1,265 +1,386 @@
-# Kurs videolarini dublyaj qilish (`modes/course.py`)
+# Kursni o'zbek tiliga dublyaj qilish
 
-Kurs, ma'ruza, skrinkast kabi videolar uchun. Bunday videolarda orqa fondagi musiqa va effektlar odatda kerak
-emas, shuning uchun **1-bosqichda audio oqimi butunlay tashlab yuboriladi** va yakuniy videoda faqat o'zbekcha
-nutq eshitiladi.
+Boshidan oxirigacha: kursni yuklab olishdan tortib, har bir darsning o'zbekcha videosini olgunga qadar.
 
-> Kino, film yoki fon musiqasi muhim bo'lgan video uchun [MOVIE.md](MOVIE.md) ga qarang.
+Kurs videolarida orqa fondagi musiqa va effektlar kerak emas, shuning uchun bu yo'lda video ovozi butunlay
+tashlab yuboriladi va yakuniy videoda faqat o'zbekcha nutq eshitiladi.
 
-O'rnatish va umumiy struktura — loyiha ildizidagi [README.md](../README.md) da.
+> Kino, film uchun [MOVIE.md](MOVIE.md) ga qarang. O'rnatish va fayllar ma'lumotnomasi —
+> [README.md](../README.md) da.
 
----
-
-## Tez yo'l: butun quvurni bir komanda bilan
-
-```bash
-.venv/bin/python modes/course.py
-```
+**Umumiy yo'l xaritasi:**
 
 ```
-Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/docker.mp4
-```
-
-`/path/to/docker/docker.mp4` berilganda quyidagi fayllar shu tartibda ishga tushadi:
-
-```
-[1/7] steps/remove_audio.py      docker.mp4                 -> docker-no-audio.mp4
-[2/7] steps/extract_audio.py     docker.mp4                 -> docker.wav
-[3/7] steps/generate_srt.py      docker.wav                 -> docker.srt
-[4/7] steps/translate_srt.py     docker.srt                 -> docker-uz.srt            (claude -p)
-[5/7] steps/normalize_srt.py     docker-uz.srt              -> docker-uz-normalized.srt
-[6/7] steps/generate_audios.py   docker-uz-normalized.srt   -> audios/*.wav
-[7/7] steps/merge_audios.py      docker-no-audio.mp4 + audios/  -> docker-result.mp4
-```
-
-> **Diqqat:** 2-bosqich transkripsiya uchun **asl** videodan audio oladi (inglizcha nutq faqat o'sha yerda),
-> 7-bosqich esa 1-bosqichda tayyorlangan ovozsiz videoni ishlatadi.
-
-Rejim ishga tushgach dastur o'zi ishlaydi va faqat quyidagi joylarda to'xtaydi:
-
-1. `.srt` allaqachon mavjud bo'lsa — qayta generatsiya qilishni so'raydi (Enter = yo'q)
-2. **4-bosqich** — tarjima allaqachon mavjud bo'lsa, qayta tarjima qilishni so'raydi (Enter = yo'q)
-3. **5-bosqich** — atamalar JSON faylini so'raydi (kerak bo'lmasa Enter)
-
-Oxirida umumiy vaqt chiqadi:
-
-```
-============================================================
- Tayyor! Natija: /path/to/docker/docker-result.mp4
- Umumiy vaqt: 1 soat 24 daqiqa 7 soniya
-============================================================
+1. Kursni yuklab olish            →  assets/docker/docker1, docker2, ...
+2. Tayyorgarlik (1-3 bosqichlar)  →  -no-audio.mp4, .wav, .srt
+3. Tarjima (4-bosqich)            →  -uz.srt
+4. Atamalar lug'ati (terms.json)  →  har bir atamaning o'qilishi
+5. Normalize (5-bosqich)          →  -uz-normalized.srt
+6. Audiolar (6-bosqich)           →  audios/*.wav
+7. Yig'ish (7-bosqich)            →  -result.mp4
 ```
 
 ---
 
-## Ko'p video uchun
+## 1. Kurs materiallarini olish
 
-Kurs odatda o'nlab video'dan iborat bo'ladi. Shuning uchun quvur uch qismga bo'lingan va har biri butun papka
-uchun birdan ishlaydi:
+### Udemy
+
+1. Microsoft Edge uchun
+   [Udemy Downloader](https://microsoftedge.microsoft.com/addons/detail/udemy-downloader/nalkmdneafbahjimajlhkjnlkdgemnpl)
+   kengaytmasini o'rnating.
+2. Udemy profilingizga kiring, kursni oching va kengaytma orqali **butun kursni** yuklab oling.
+
+Yuklab olingan videolar odatda `7 mening videom.mp4` ko'rinishida — nomining boshida dars raqami turadi.
+
+### Videolarni `assets/` ga joylashtirish
 
 ```bash
-.venv/bin/python batches/prepare_batch.py        # 1-3 bosqichlar (ovozsiz video + .wav + inglizcha .srt)
-.venv/bin/python batches/translate_batch.py      # 4-bosqich (tarjima)
-.venv/bin/python batches/normalize_srt_batch.py  # 5-bosqich (normalize)
+.venv/bin/python utils/locate_videos.py
 ```
 
-Batafsil: [README.md](../README.md) dagi "Ko'p video uchun" bo'limi.
+```
+Videolar joylashgan absolute path: /Users/asliddin/Downloads/docker-kursi
+Destination path: /Users/asliddin/Documents/projects/translate-video/assets/docker
+Name: docker
+```
+
+Skript har bir video uchun alohida papka yasaydi va nomlarni tartibga soladi:
+
+```
+assets/docker/
+├── docker1/
+│   ├── docker1.mp4     ← video (nusxa)
+│   └── README.md       ← dars nomi
+├── docker2/
+│   ├── docker2.mp4
+│   └── README.md
+└── ...
+```
+
+Bundan keyingi hamma skript aynan shu tuzilishga tayanadi: **ota papka nomi** (`docker`) ichki papkalar nomini
+(`docker1`, `docker2`, …) belgilaydi, papka nomi esa ichidagi fayllar nomini belgilaydi.
+
+> Mavjud video va `README.md` qayta yozilmaydi — skriptni bemalol qayta ishga tushirsa bo'ladi.
 
 ---
 
-## Bosqichma-bosqich: `/path/to/docker/docker.mp4` misolida
+## 2. Tayyorgarlik: ovozsiz video, audio va transkripsiya
 
-Har bir bosqichni alohida ham ishga tushirish mumkin. Barcha savollarda kvadrat qavs ichidagi qiymat —
-default; **Enter** bosish kifoya.
+1-3 bosqichlar: video ovozidan tozalanadi, transkripsiya uchun audio ajratiladi va whisper inglizcha `.srt`
+yasaydi.
 
-### 1-bosqich — videodan audioni olib tashlash
+**Bitta dars uchun:**
 
 ```bash
-.venv/bin/python steps/remove_audio.py
+.venv/bin/python pipelines/prepare.py
 ```
 
 ```
-Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/docker.mp4
-Ovozsiz video qayerga saqlansin [/path/to/docker/docker-no-audio.mp4]: ⏎
+Video fayl manzilini kiriting (/path/to/docker/docker.mp4): assets/docker/docker1/docker1.mp4
+1) Ovozsiz video qayerga saqlansin [.../docker1-no-audio.mp4]: ⏎
+2) Transkripsiya uchun audio qayerga saqlansin [.../docker1.wav]: ⏎
+3) Transkripsiya .srt fayli qayerga saqlansin [.../docker1.srt]: ⏎
+4) Audiodagi nutq tili (auto — o'zi aniqlaydi) [en]: ⏎
 ```
 
-**Natija:** `/path/to/docker/docker-no-audio.mp4` — tasvir o'zgarmaydi (`-c:v copy`), audio oqimi esa umuman
-yo'q. Bir necha soniyada tugaydi.
+Barcha savollar **boshida** so'raladi — keyin dastur to'xtamasdan ishlaydi.
+
+**Butun kurs uchun:**
+
+```bash
+.venv/bin/python batches/prepare_batch.py
+```
+
+```
+Path (video papkalari joylashgan ota papka): assets/docker
+Start (masalan 18 -> docker18 dan boshlanadi) [1]: 1
+End (masalan 20 -> docker20 gacha, docker20 ham kiradi) [oxirigacha]: ⏎
+```
+
+Har bir papkada uch fayl paydo bo'ladi:
+
+```
+docker1/docker1-no-audio.mp4   ← ovozsiz video (7-bosqichda ishlatiladi)
+docker1/docker1.wav            ← 16 kHz mono audio
+docker1/docker1.srt            ← inglizcha transkripsiya
+```
+
+- Uch natijasi ham tayyor papka o'tkazib yuboriladi — uzilgan jarayonni bemalol davom ettirasiz.
+- Bitta video xato bersa quvur to'xtamaydi; oxirida hisobot va umumiy vaqt chiqadi.
+- Eng sekin qismi — whisper. Bir soatlik kurs uchun bir necha soat ketishi mumkin.
 
 ---
 
-### 2-bosqich — videodan audio ajratish
+## 3. Tarjima
+
+### 3.1. Claude Code'ni tayyorlash
+
+Tarjima Claude Code'ning **headless** rejimi orqali bajariladi, ya'ni `claude -p` ga `.srt` matni beriladi va
+u tayyor `.srt` qaytaradi.
 
 ```bash
-.venv/bin/python steps/extract_audio.py
+npm install -g @anthropic-ai/claude-code
 ```
 
-```
-Video fayl manzilini kiriting (/path/to/docker/docker.mp4): /path/to/docker/docker.mp4
-Audio fayl qayerga saqlansin [/path/to/docker/docker.wav]: ⏎
-```
-
-**Natija:** `/path/to/docker/docker.wav` (16 kHz mono — whisper uchun optimal)
-
----
-
-### 3-bosqich — transkripsiya (inglizcha `.srt`)
+So'ng bir marta terminalda ishga tushirib, tizimga kiring:
 
 ```bash
-.venv/bin/python steps/generate_srt.py
+claude
 ```
 
-```
-Audio fayl manzilini kiriting (/path/to/docker/docker.wav): /path/to/docker/docker.wav
-Transkripsiya .srt fayli qayerga saqlansin [/path/to/docker/docker.srt]: ⏎
-Audiodagi nutq tili (auto — o'zi aniqlaydi) [en]: ⏎
-```
+Brauzer ochiladi va hisobingizni tasdiqlaysiz. Buning uchun **Claude obunasi bo'lishi kerak** — tarjima o'sha
+obuna hisobidan foydalanadi. Kirgandan keyin `claude` ni yopsangiz ham bo'ladi; keyingi chaqiruvlar shu
+sessiyani ishlatadi.
 
-**Natija:** `/path/to/docker/docker.srt`
+### 3.2. Tarjimani ishga tushirish
 
-Default model — `large-v3-turbo`. Sifati past, shovqinli yozuv uchun to'liq modelga qaytish mumkin:
-
-```bash
-WHISPER_MODEL=large-v3 .venv/bin/python steps/generate_srt.py
-```
-
----
-
-### 4-bosqich — tarjima (Claude Code headless)
+**Bitta dars uchun:**
 
 ```bash
 .venv/bin/python steps/translate_srt.py
 ```
 
 ```
-Tarjima qilinadigan .srt fayl manzilini kiriting: /path/to/docker/docker.srt
-Tarjima qilingan .srt fayl qayerga saqlansin [/path/to/docker/docker-uz.srt]: ⏎
+Tarjima qilinadigan .srt fayl manzilini kiriting: assets/docker/docker1/docker1.srt
+Tarjima qilingan .srt fayl qayerga saqlansin [.../docker1-uz.srt]: ⏎
   Yo'nalish: en -> uz | 59 ta subtitr
   Model: claude-opus-5 (effort=high) — bu biroz vaqt oladi...
   29 ta subtitr yozildi (1 daqiqa 12 soniya, $0.4137).
 ```
 
-**Natija:** `/path/to/docker/docker-uz.srt`
+**Butun kurs uchun:**
 
-Butun `.srt` matni `claude -p` ga prompt sifatida beriladi va model tayyor `.srt` qaytaradi. Prompt bloklarni
-birlashtirishga ruxsat bergani uchun natijada bloklar soni kamayishi normal.
+```bash
+.venv/bin/python batches/translate_batch.py
+```
 
-Kurs videolarida texnik atamalar ko'p bo'ladi — prompt ularni **tarjima qilmasdan**, asl inglizcha yozuvida
-qoldiradi (`container`, `Docker Compose`, `Node.js`). Ularning o'qilishi 5-bosqichda hal qilinadi.
+```
+Path (video papkalari joylashgan ota papka): assets/docker
+Start (masalan 14 -> docker14 dan boshlanadi) [1]: 1
+End (masalan 20 -> docker20 gacha, docker20 ham kiradi) [oxirigacha]: ⏎
+Qaysi tildan (til kodi) [en]: ⏎
+Qaysi tilga (til kodi) [uz]: ⏎
+```
 
-Har bir chaqiruv pullik, shuning uchun tarjima mavjud bo'lsa qayta tarjima so'raladi (Enter = yo'q).
+```
+docker1/docker1.srt  ->  docker1/docker1-uz.srt
+docker2/docker2.srt  ->  docker2/docker2-uz.srt
+```
 
-| O'zgaruvchi      | Default          | Izoh                        |
-|------------------|------------------|-----------------------------|
-| `CLAUDE_MODEL`   | `claude-opus-5`  | tarjima qiladigan model     |
-| `CLAUDE_EFFORT`  | `high`           | effort darajasi             |
-| `CLAUDE_TIMEOUT` | `3600`           | bitta chaqiruv uchun sekund |
+Tarjima allaqachon mavjud papka o'tkazib yuboriladi. Oxirida **jami narx** ko'rsatiladi.
+
+### 3.3. Tarjima nima qiladi
+
+- Timestamp'lar o'zgarmaydi; gap ikki blokka bo'linib qolgan joyda bloklar birlashtiriladi va qayta
+  raqamlanadi (shuning uchun bloklar soni kamayishi normal).
+- **Texnik atamalar va ismlar tarjima qilinmaydi** — `container`, `Docker Compose`, `Node.js` asl yozuvida
+  qoladi. Ularning o'qilishi keyingi bosqichda hal qilinadi.
+- Uslub — jonli, o'qituvchi so'zlayotgandek. Transkripsiya xatolari tuzatiladi.
 
 ---
 
-### 5-bosqich — matnni TTS uchun normalize qilish
+## 4. Atamalar lug'ati: `terms.json`
+
+TTS inglizcha so'zlarni o'zbekcha o'qish qoidalari bilan talaffuz qiladi, natijada `container` ni "sontayner"
+kabi noto'g'ri o'qishi mumkin. Shuning uchun har bir atamaning **o'qilishi** oldindan yozib qo'yiladi.
+
+### 4.1. Kurs papkasi uchun `terms.json` yaratish
+
+Tarjima tugagach, `-uz.srt` fayllarida inglizcha holida qolgan so'zlarni yig'ib olish kerak. Buni Claude Code
+bilan qilish qulay — kurs papkasida `claude` ni oching:
 
 ```bash
-.venv/bin/python steps/normalize_srt.py
+cd assets/docker
+claude
 ```
 
+va shunday so'rang:
+
 ```
-Tarjima qilingan .srt fayl manzilini kiriting (/path/to/docker/docker-uz.srt): /path/to/docker/docker-uz.srt
-Normalize qilingan .srt qayerga saqlansin [/path/to/docker/docker-uz-normalized.srt]: ⏎
-Atamalar JSON fayli manzilini kiriting (/path/to/docker/normalize.json) (o'tkazib yuborish uchun Enter): /path/to/docker/normalize.json
+Shu papkadagi barcha */*-uz.srt fayllarni o'qi. Ularda inglizcha holida qolgan barcha so'zlarni
+(texnik atamalar, ismlar, komandalar) yig'ib, shu papkada terms.json fayli yarat.
+
+Talablar:
+  * Kalit — .srt faylda uchragan aynan o'sha yozuv (qo'shimchasi va tinish belgisi bilan birga,
+    masalan "container'lar", "container.").
+  * Qiymat — bo'sh string "".
+  * Takrorlanmasin, alifbo tartibida bo'lsin.
+  * Faqat toza JSON — izohsiz, tekis (nested emas) tuzilishda.
 ```
 
-**Natija:** `/path/to/docker/docker-uz-normalized.srt`
-
-Bu bosqich **kurs videolari uchun eng muhimi** — TTS inglizcha atamalarni noto'g'ri o'qiydi. Ikki amal shu
-tartibda bajariladi:
-
-**1) Atamalar almashtiriladi** (`normalize.json`):
+Natija shunday bo'ladi:
 
 ```json
 {
-  "docker": "do'ker",
-  "kubernetes": "kubernites",
-  "container": "konteyner"
+  "container": "",
+  "container'lar": "",
+  "container.": "",
+  "Docker": "",
+  "Docker'ni": "",
+  "Kubernetes": ""
 }
 ```
 
-Atama **faqat ikki tomonida ham bo'shliq** bo'lganda almashtiriladi (matn boshi va oxiri ham bo'shliq deb
-qaraladi):
+> **Nega qo'shimchasi bilan?** 5-bosqichdagi almashtirish so'zni faqat **ikki tomonida ham bo'shliq** bo'lganda
+> almashtiradi. Ya'ni `container` kaliti `container'lar` ga ta'sir qilmaydi — har bir shakl alohida kalit
+> bo'lishi kerak.
 
-| Matn | Natija | Sabab |
-|---|---|---|
-| `docker run` | ✅ `do'ker run` | ikki tomonida bo'shliq |
-| `docker` (butun blok) | ✅ `do'ker` | matn boshi/oxiri ham chegara |
-| `docker.` | ❌ tegilmaydi | o'ngida nuqta |
-| `docker'ni` | ❌ tegilmaydi | o'ngida apostrof |
-| `dockerfile` | ❌ tegilmaydi | boshqa so'z ichida |
+### 4.2. O'qilishlarni loyihadagi umumiy lug'atdan to'ldirish
 
-Ya'ni qo'shimchali va tinish belgili shakllarni alohida kalit qilib qo'shish kerak
-(`"docker'ni": "do'kerni"`). Ularni qo'lda terib chiqmaslik uchun:
+Loyiha ildizida umumiy `terms.json` yuritiladi — unda ilgari aniqlangan o'qilishlar to'planadi
+(`"docker": "do'ker"`, `"container": "konteyner"`, …). Kurs papkasidagi bo'sh qiymatlarni o'shandan
+to'ldirish kerak.
+
+> ⚠️ **Bu qadam uchun skript hali yozilmagan.** Reja: `utils/` ichida skript bo'ladi — u kurs papkasidagi
+> `terms.json` dagi bo'sh qiymatlarni loyiha ildizidagi umumiy `terms.json` dan to'ldiradi va topilmaganlarini
+> ro'yxat qilib ko'rsatadi. Hozircha bu qadamni qo'lda bajarasiz.
+
+Yordamchi sifatida `utils/collect_terms.py` bor — u allaqachon o'qilishi ma'lum atamalarning matndagi barcha
+shakllarini topib, tayyor qiymat bilan chiqarib beradi:
 
 ```bash
 .venv/bin/python utils/collect_terms.py
 ```
 
-**2) Sonlar, sanalar va vaqt so'zga aylantiriladi** (`uztts.normalize`):
+```
+Path (video papkalari joylashgan ota papka): assets/docker
+terms.json manzili [assets/docker/terms.json]: ⏎
+Natija JSON fayllari qaysi papkaga saqlansin [assets/docker/terms]: ⏎
+```
+
+Har bir atama uchun alohida fayl yaratadi — `terms/container.json`:
+
+```json
+{
+  "container'lar": "konteyner'lar",
+  "container.": "konteyner.",
+  "containerda": "konteynerda"
+}
+```
+
+Bu yozuvlarni `terms.json` ga ko'chirib qo'yasiz.
+
+### 4.3. Qolganini qo'lda to'ldirish
+
+Umumiy lug'atda topilmagan so'zlarning o'qilishini o'zingiz yozasiz — o'zbek lotin harflarida, inglizcha
+talaffuzga asoslanib:
+
+```json
+{
+  "Kubernetes": "kubernetis",
+  "Kubernetes'ga": "kubernetisga",
+  "deploy": "deplo'y",
+  "Maximilian": "Maksimillian"
+}
+```
+
+Ishonchingiz komil bo'lmasa, tekshirish usuli: shu so'z bilan qisqa `.srt` yasab, 6-bosqichni ishga tushiring
+va chiqqan audioni tinglang.
+
+> Yangi aniqlangan o'qilishlarni loyiha ildizidagi umumiy `terms.json` ga ham qo'shib boring — keyingi
+> kurslarda qayta ishlatiladi.
+
+---
+
+## 5. Normalize: TTS uchun matn tayyorlash
+
+```bash
+.venv/bin/python batches/normalize_srt_batch.py
+```
+
+```
+Path (video papkalari joylashgan ota papka): assets/docker
+Start (masalan 14 -> docker14 dan boshlanadi) [1]: 1
+End (masalan 20 -> docker20 gacha, docker20 ham kiradi) [oxirigacha]: ⏎
+Tarjima tili (til kodi) [uz]: ⏎
+Umumiy atamalar JSON fayli (assets/docker/terms.json) (o'tkazib yuborish uchun Enter): assets/docker/terms.json
+Tayyor natijalar qayta hisoblansinmi? [ha/Yo'q]: ⏎
+```
+
+> ⚠️ Atamalar savolida qavs ichidagi manzil **default emas** — u shunchaki namuna. Enter bossangiz, atamalar
+> almashtirilmaydi va faqat sonlar/sanalar so'zga aylanadi. Lug'at kerak bo'lsa, manzilni to'liq yozing.
+
+```
+docker1/docker1-uz.srt  ->  docker1/docker1-uz-normalized.srt
+```
+
+Ikki amal shu tartibda bajariladi:
+
+**1) Atamalar almashtiriladi** (`terms.json` bo'yicha) — so'z faqat ikki tomonida bo'shliq bo'lganda:
+
+| Matn | Natija |
+|---|---|
+| `docker run` | ✅ `do'ker run` |
+| `docker.` | ❌ tegilmaydi (kalit sifatida `"docker."` bo'lsa — almashadi) |
+| `dockerfile` | ❌ tegilmaydi |
+
+**2) Sonlar, sanalar va vaqt so'zga aylantiriladi:**
 
 ```
 Bugun 16.07.2026, soat 14:30 da uchrashamiz.
 → Bugun o'n olti iyul ikki ming yigirma olti, soat o'n to'rt o'ttiz da uchrashamiz.
 ```
 
-Namuna sifatida `terms.example.json` bor:
+Bitta darsga xos atamalar bo'lsa, o'sha papkada `docker14-terms.json` yarating — u umumiy fayldan ustun
+turadi.
+
+Bosqich bepul va tez (hammasi lokal). `terms.json` ni to'ldirgach, oxirgi savolga `ha` deb javob berib
+hammasini qayta hisoblang.
+
+**Natijani tekshiring** — bir-ikki faylni ochib, atamalar to'g'ri almashganiga ishonch hosil qiling:
 
 ```bash
-cp terms.example.json /path/to/docker/normalize.json
+head -20 assets/docker/docker1/docker1-uz-normalized.srt
 ```
 
 ---
 
-### 6-bosqich — o'zbekcha audiolar (TTS)
+## 6. Audiolarni generatsiya qilish
 
 ```bash
 .venv/bin/python steps/generate_audios.py
 ```
 
 ```
-Normalize qilingan .srt fayl manzilini kiriting (/path/to/docker/docker-uz-normalized.srt): /path/to/docker/docker-uz-normalized.srt
-Audiolar qaysi papkaga saqlansin [/path/to/docker/audios]: ⏎
+Normalize qilingan .srt fayl manzilini kiriting (...): assets/docker/docker1/docker1-uz-normalized.srt
+Audiolar qaysi papkaga saqlansin [assets/docker/docker1/audios]: ⏎
 ```
 
-**Natija:** `/path/to/docker/audios/00-00-01-500.wav`, `00-00-04-200.wav`, …
+**Natija:** `assets/docker/docker1/audios/00-00-01-500.wav`, `00-00-04-200.wav`, …
 
-Fayl nomi — subtitrning **boshlanish vaqti**. 7-bosqich audioni videoga aynan shu nom bo'yicha joylashtiradi,
+Fayl nomi — subtitrning boshlanish vaqti. 7-bosqich audioni videoga aynan shu nom bo'yicha joylashtiradi,
 shuning uchun fayllarni qayta nomlamang.
 
 - Model **bir marta** yuklanadi, barcha segmentlar shu jarayonda generatsiya qilinadi
-- Papkada tayyor fayl bo'lsa, qayta generatsiya qilinmaydi (uzilgan jarayonni davom ettirish mumkin).
-  Butunlay yangilash uchun: `rm -rf /path/to/docker/audios`
+- Papkada tayyor fayl bo'lsa, qayta generatsiya qilinmaydi (uzilgan jarayonni davom ettirish mumkin)
 - Audio o'z oralig'iga sig'masa, avtomatik tezlashtiriladi (maksimum 1.5x)
+- Ovozni butunlay yangilash uchun: `rm -rf assets/docker/docker1/audios`
 
-Kursda o'qituvchi ohangi mos keladi — default `calm` hissiyoti va `xurmo.wav` ovozi shunga yaqin. Boshqasini
-sinab ko'rish uchun:
+Kurs uchun default `calm` hissiyoti va `xurmo.wav` ovozi mos keladi. Boshqa ovozni sinash:
 
 ```bash
-rm -rf /path/to/docker/audios
 NAVOIY_REFERENCE=navoiy-tts/demo/warm_agent.wav .venv/bin/python steps/generate_audios.py
 ```
 
+> **Eslatma:** 6- va 7-bosqichlar uchun batch skript hozircha yo'q — har bir dars uchun alohida ishga
+> tushirasiz. Muqobil yo'l: `modes/course.py` ni o'sha video uchun ishga tushirish — 1-5 bosqichlar tayyor
+> bo'lgani uchun ular o'tkazib yuboriladi va faqat qolgan ikkitasi bajariladi.
+
 ---
 
-### 7-bosqich — o'zbekcha audiolarni biriktirish
+## 7. Yakuniy videoni yig'ish
 
 ```bash
 .venv/bin/python steps/merge_audios.py
 ```
 
 ```
-Ovozsiz video fayl manzilini kiriting (/path/to/docker/docker-no-audio.mp4): /path/to/docker/docker-no-audio.mp4
-Audiolar joylashgan papka manzilini kiriting [/path/to/docker/audios]: ⏎
+Ovozsiz video fayl manzilini kiriting (...): assets/docker/docker1/docker1-no-audio.mp4
+Audiolar joylashgan papka manzilini kiriting [assets/docker/docker1/audios]: ⏎
 ```
 
-> **Diqqat:** bu yerda asl `docker.mp4` emas, 1-bosqichdan chiqqan `docker-no-audio.mp4` berilishi kerak.
+> **Diqqat:** bu yerda asl `docker1.mp4` emas, 2-bo'limda tayyorlangan `docker1-no-audio.mp4` berilishi kerak.
 > Aks holda inglizcha nutq qaytib qo'shiladi.
 
 Video ovozsiz bo'lgani uchun ekranda shunday chiqadi:
@@ -268,41 +389,52 @@ Video ovozsiz bo'lgani uchun ekranda shunday chiqadi:
   Video ovozsiz — faqat o'zbekcha audiolar qo'shiladi.
 ```
 
-**Natija:** `/path/to/docker/docker-result.mp4` — tayyor dublyaj qilingan video
+**Natija:** `assets/docker/docker1/docker1-result.mp4` — o'zbek tilida gapiradigan tayyor dars.
 
 ---
 
-## Fayllar xaritasi
+## Yakuniy holat
 
-`/path/to/docker/docker.mp4` uchun quvur oxirida:
+Bitta dars papkasi quvur oxirida shunday ko'rinadi:
 
 ```
-/path/to/docker/
-├── docker.mp4                 ← manba
-├── docker-no-audio.mp4        ← 1-bosqich (ovozsiz video)
-├── docker.wav                 ← 2-bosqich (16 kHz mono)
-├── docker.srt                 ← 3-bosqich (inglizcha)
-├── docker-uz.srt              ← 4-bosqich (o'zbekcha, claude -p)
-├── normalize.json             ← atamalar ro'yxati (ixtiyoriy, o'zingiz yaratasiz)
-├── docker-uz-normalized.srt   ← 5-bosqich (TTS uchun tayyorlangan)
-├── audios/                    ← 6-bosqich
+assets/docker/docker1/
+├── README.md                   ← dars nomi
+├── docker1.mp4                 ← manba (Udemy'dan)
+├── docker1-no-audio.mp4        ← 1-bosqich
+├── docker1.wav                 ← 2-bosqich
+├── docker1.srt                 ← 3-bosqich (inglizcha)
+├── docker1-uz.srt              ← 4-bosqich (o'zbekcha)
+├── docker1-uz-normalized.srt   ← 5-bosqich (TTS uchun)
+├── audios/                     ← 6-bosqich
 │   ├── 00-00-01-500.wav
 │   └── 00-00-04-200.wav
-└── docker-result.mp4          ← 7-bosqich (NATIJA)
+└── docker1-result.mp4          ← 7-bosqich (NATIJA)
+```
+
+Kurs papkasining ildizida esa umumiy `terms.json` turadi:
+
+```
+assets/docker/
+├── terms.json     ← butun kurs uchun atamalar lug'ati
+├── docker1/
+├── docker2/
+└── ...
 ```
 
 ---
 
-## Kursga oid maslahatlar
+## Maslahatlar
 
 **Jarayon uzilib qoldi.** Qaytadan ishga tushiring — har bir bosqich tayyor natijani qayta hisoblamaydi.
 
-**Bir kursning barcha videolari bir xil atamalarni ishlatadi.** Shuning uchun `normalize.json` ni kurs papkasi
-ildizida (`assets/docker/normalize.json`) bitta qilib saqlang — `batches/normalize_srt_batch.py` uni hamma
-papkaga qo'llaydi. Bitta videoga xos atamalar bo'lsa, o'sha papkada `docker14-normalize.json` yarating.
+**Bir kursning hamma darsi bir xil atamalarni ishlatadi.** Shuning uchun `terms.json` ni kurs papkasi
+ildizida bitta qilib saqlang — `normalize_srt_batch.py` uni hamma papkaga qo'llaydi.
 
-**O'zbekcha nutq keyingi jumla ustiga chiqib ketyapti.** O'zbekcha matn inglizchadan uzunroq bo'ladi.
-`steps/generate_audios.py` da `MAX_TEMPO` ni `1.8` ga ko'taring yoki `NAVOIY_SPEED=1.15` bilan generatsiya
-qiling.
+**Atama noto'g'ri o'qilyapti.** `terms.json` dagi o'qilishini o'zgartiring va faqat 5-6 bosqichlarni qayta
+bajaring (`rm -rf <papka>/audios` ni unutmang).
 
-**Fon musiqasi kerak bo'lib qoldi.** Kurs emas, kino rejimidan foydalaning: [MOVIE.md](MOVIE.md).
+**O'zbekcha nutq keyingi jumla ustiga chiqib ketyapti.** `steps/generate_audios.py` da `MAX_TEMPO` ni `1.8`
+ga ko'taring yoki `NAVOIY_SPEED=1.15` bilan generatsiya qiling.
+
+**Fon musiqasi kerak bo'lib qoldi.** Kurs emas, kino yo'lidan boring: [MOVIE.md](MOVIE.md).

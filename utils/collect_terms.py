@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""normalize.json dagi har bir atama uchun matndagi barcha shakllarini yig'ib beradi.
+"""terms.json dagi har bir atama uchun matndagi barcha shakllarini yig'ib beradi.
 
 5-bosqichdagi almashtirish faqat ikki tomonida bo'shliq bo'lgan so'zga qo'llaniladi
 (`steps/normalize_srt.py`). Shuning uchun `container'lar`, `container.`,
-`containerda` kabi shakllar `normalize.json` da alohida kalit sifatida turishi
+`containerda` kabi shakllar `terms.json` da alohida kalit sifatida turishi
 kerak. Bu skript o'sha shakllarni matndan topib, tayyor JSON qilib beradi.
 
 Dastur boshida uch narsa so'raladi:
 
     1. Path            — ichida video papkalari joylashgan ota papka
                          (masalan: /Users/.../assets/docker)
-    2. normalize.json  — asosiy atamalar ro'yxati
+    2. terms.json      — asosiy atamalar ro'yxati
     3. Natija papkasi  — har bir atama uchun alohida JSON shu yerda yaratiladi
 
 Matn `<papka>/<papka nomi>-uz-normalized.srt` fayllaridan olinadi (5-bosqich
@@ -26,13 +26,13 @@ Har bir atama uchun `<natija papkasi>/<atama>.json` yaratiladi:
       "containerda": "konteynerda"
     }
 
-Qiymat avtomatik to'ldiriladi: so'z ichidagi atama `normalize.json` dagi
+Qiymat avtomatik to'ldiriladi: so'z ichidagi atama `terms.json` dagi
 o'qilishiga almashtiriladi, qolgan qismi (qo'shimcha, tinish belgisi) o'zgarmaydi.
 So'z bir nechta atamani o'z ichiga olsa, eng uzunidan boshlab almashtiriladi.
 Bosh harf saqlanadi: `Container'lar` -> `Konteyner'lar`.
 
 Fayllar tayyor bo'lgach, ularni ko'zdan kechirib, kerakli yozuvlarni
-`normalize.json` ga ko'chirib qo'yasiz.
+`terms.json` ga ko'chirib qo'yasiz.
 
 Ishga tushirish (loyiha ildizidan):
     python utils/collect_terms.py
@@ -154,7 +154,7 @@ def write_term_files(
 
 def main() -> None:
     print("=" * 70)
-    print(" Atamalar shakllarini yig'ish (normalize.json uchun material)")
+    print(" Atamalar shakllarini yig'ish (terms.json uchun material)")
     print("=" * 70)
 
     root = ask_path(
@@ -163,8 +163,8 @@ def main() -> None:
         must_be_dir=True,
     )
     terms_path = ask_path(
-        "normalize.json manzili",
-        default=root / "normalize.json",
+        "terms.json manzili",
+        default=root / "terms.json",
         must_exist=True,
     )
     output_dir = ask_path(
@@ -191,7 +191,7 @@ def main() -> None:
     print("\n" + "=" * 70)
     print(" Hisobot")
     print("=" * 70)
-    print(f"  Atamalar (normalize.json) : {len(replacements)}")
+    print(f"  Atamalar (terms.json)     : {len(replacements)}")
     print(f"  JSON yaratildi            : {written}")
     print(f"  Jami shakllar             : {total_forms}")
     print(f"  Papka                     : {output_dir}")
