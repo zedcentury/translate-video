@@ -326,8 +326,29 @@ inglizcha talaffuzga asoslanib:
 }
 ```
 
-Ishonchingiz komil bo'lmasa, tekshirish usuli: shu so'z bilan qisqa `.srt` yasab, 6-bosqichni ishga tushiring
-va chiqqan audioni tinglang.
+Ishonchingiz komil bo'lmasa, o'qilishni **quloq bilan tekshiring**:
+
+```bash
+.venv/bin/python utils/preview_terms.py
+```
+
+```
+terms.json manzili: assets/docker/terms.json
+Audiolar qaysi papkaga saqlansin [assets/docker/terms_audios]: ⏎
+Qaysi so'z (hammasi uchun Enter) []: container
+  1 ta atama | 0 tasi allaqachon tayyor -> assets/docker/terms_audios
+  [1/1] container.wav : Endi konteyner sahifasiga kiring
+```
+
+Har bir atama `"Endi {o'qilishi} sahifasiga kiring"` gapi ichida o'qitiladi va **kalit so'z nomi** bilan
+saqlanadi (`container.wav`). Tinglab, noto'g'ri o'qilayotganini topasiz.
+
+- Oxirgi savolda **Enter** bossangiz, `terms.json` dagi **hamma** atama uchun audio yasaladi (20 tadan ko'p
+  bo'lsa tasdiq so'raydi — TTS sekin).
+- O'qilish har doim `terms.json` dan olinadi. So'z faylda bo'lmasa, skript to'xtaydi — avval uni faylga
+  qo'shing.
+- **Mavjud audio qayta yozilmaydi** — o'tkazib yuboriladi. Qaytadan tinglash uchun eski `.wav` ni o'chiring.
+  Hammasi tayyor bo'lsa, TTS modeli umuman yuklanmaydi.
 
 ### 4.4. To'ldirilganlarni `terms.json` ga ko'chirish (qo'lda)
 
