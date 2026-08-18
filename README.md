@@ -94,7 +94,8 @@ utils/          Umumiy yordamchilar
 ├── preview_terms.py      har bir atamaning o'qilishini tekshirish uchun sinov audiolari
 ├── kokoro_tts.py         berilgan matnni Kokoro TTS bilan audioga o'giradi (inglizcha)
 ├── mixed_tts.py          aralash matn: o'zbekchasi Navoiy, inglizchasi Kokoro bilan
-└── compare_voices.py     bitta matnni Kokoro'ning 13 ta erkak ovozi bilan o'qitadi
+├── compare_voices.py     bitta matnni Kokoro'ning 13 ta erkak ovozi bilan o'qitadi
+└── voice_convert.py      audioning ovozini boshqa ovozga o'tkazadi (kNN-VC)
 
 readme/         Video turiga qarab qo'llanmalar (COURSE.md, MOVIE.md)
 assets/         Videolar va ular yonidagi barcha oraliq fayllar
