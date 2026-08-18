@@ -36,7 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from utils.common import ask_path, ask_text, fail  # noqa: E402
 
 DEFAULT_LANG = os.environ.get("KOKORO_LANG", "a")
-DEFAULT_VOICE = os.environ.get("KOKORO_VOICE", "af_heart")
+DEFAULT_VOICE = os.environ.get("KOKORO_VOICE", "am_michael")
 DEFAULT_SPEED = float(os.environ.get("KOKORO_SPEED", "1.0"))
 
 # Kokoro shu chastotada audio qaytaradi.

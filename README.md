@@ -93,7 +93,8 @@ utils/          Umumiy yordamchilar
 ├── merge_terms.py        terms/ + terms.json -> full_terms.json (alifbo tartibida)
 ├── preview_terms.py      har bir atamaning o'qilishini tekshirish uchun sinov audiolari
 ├── kokoro_tts.py         berilgan matnni Kokoro TTS bilan audioga o'giradi (inglizcha)
-└── mixed_tts.py          aralash matn: o'zbekchasi Navoiy, inglizchasi Kokoro bilan
+├── mixed_tts.py          aralash matn: o'zbekchasi Navoiy, inglizchasi Kokoro bilan
+└── compare_voices.py     bitta matnni Kokoro'ning 13 ta erkak ovozi bilan o'qitadi
 
 readme/         Video turiga qarab qo'llanmalar (COURSE.md, MOVIE.md)
 assets/         Videolar va ular yonidagi barcha oraliq fayllar
