@@ -13,13 +13,17 @@ Dastur boshida uch narsa so'raladi:
     2. terms.json      — asosiy atamalar ro'yxati
     3. Natija papkasi  — har bir atama uchun alohida JSON shu yerda yaratiladi
 
-Matn `<papka>/<papka nomi>-uz-normalized.srt` fayllaridan olinadi (5-bosqich
-natijasi). Ya'ni allaqachon almashtirilgan so'zlar u yerda yo'q — natijada faqat
-HALI QAMRAB OLINMAGAN shakllar to'planadi.
+Matn FAQAT `<papka>/<papka nomi>-uz.srt` fayllaridan olinadi (4-bosqich natijasi,
+ya'ni tarjima). `-uz-normalized.srt`, `<papka nomi>.srt` va boshqa fayllar
+o'qilmaydi — fayl nomi aynan shu ko'rinishda qidiriladi.
 
-TANLASH QOIDASI: so'z atama BILAN BOSHLANGANDAGINA olinadi (katta-kichik harfga
-qaralmaydi). Ya'ni `id` atamasi uchun `identificator` va `Identificator` olinadi,
-`pid` esa olinmaydi.
+TANLASH QOIDASI: so'z atama bilan BOSHLANGANDAGINA olinadi (katta-kichik harfga
+qaralmaydi), lekin atamaning AYNAN o'zi — harflari ham bir xil bo'lgani — olinmaydi.
+`id` atamasi uchun:
+
+    identificator, Identificator, ID'ga, ID   -> olinadi
+    id                                        -> olinmaydi (atamaning o'zi)
+    pid                                       -> olinmaydi (boshlanmaydi)
 
 Har bir atama uchun `<natija papkasi>/<atama>.json` yaratiladi:
 
@@ -57,8 +61,8 @@ from steps.normalize_srt import load_replacements  # noqa: E402
 from utils.common import ask_path, fail  # noqa: E402
 from utils.srt import parse_srt  # noqa: E402
 
-# Matn shu ko'rinishdagi fayllardan o'qiladi: docker14/docker14-uz-normalized.srt
-SOURCE_SUFFIX = "-uz-normalized.srt"
+# Matn FAQAT shu ko'rinishdagi fayllardan o'qiladi: docker14/docker14-uz.srt
+SOURCE_SUFFIX = "-uz.srt"
 
 # Fayl nomida ishlatib bo'lmaydigan belgilar shu bilan almashtiriladi.
 UNSAFE_IN_FILENAME = re.compile(r"[^A-Za-z0-9._'-]+")
@@ -126,12 +130,14 @@ def write_term_files(
     summary: list[tuple[str, int]] = []
 
     for term in sorted(replacements):
-        # Faqat SHU ATAMA BILAN BOSHLANADIGAN so'zlar olinadi (katta-kichik harfga
-        # qaralmaydi): "id" -> "identificator", "Identificator" — ha; "pid" — yo'q.
+        # Boshlanishi atamaga mos kelsa olinadi (katta-kichik harfga qaralmaydi),
+        # lekin atamaning AYNAN o'zi (harflari ham bir xil) olinmaydi:
+        #   "id" -> yo'q (o'zi),  "ID" -> ha (harflari boshqacha),
+        #   "identificator", "ID'ga" -> ha,  "pid" -> yo'q (boshlanmaydi).
         forms = {
             token: reading_for(token, term, replacements[term])
             for token in tokens
-            if token.lower().startswith(term)
+            if token.lower().startswith(term) and token != term
         }
         if not forms:
             continue
