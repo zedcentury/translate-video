@@ -91,7 +91,9 @@ utils/          Umumiy yordamchilar
 ├── collect_terms.py      atamalarning matndagi barcha shakllarini terms/ papkasiga yig'adi
 ├── fill_terms.py         kurs terms.json dagi bo'sh o'qilishlarni asosiy lug'atdan to'ldiradi
 ├── merge_terms.py        terms/ + terms.json -> full_terms.json (alifbo tartibida)
-└── preview_terms.py      har bir atamaning o'qilishini tekshirish uchun sinov audiolari
+├── preview_terms.py      har bir atamaning o'qilishini tekshirish uchun sinov audiolari
+├── kokoro_tts.py         berilgan matnni Kokoro TTS bilan audioga o'giradi (inglizcha)
+└── mixed_tts.py          aralash matn: o'zbekchasi Navoiy, inglizchasi Kokoro bilan
 
 readme/         Video turiga qarab qo'llanmalar (COURSE.md, MOVIE.md)
 assets/         Videolar va ular yonidagi barcha oraliq fayllar
