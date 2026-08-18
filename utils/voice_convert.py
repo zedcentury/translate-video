@@ -75,7 +75,7 @@ def resolve_device() -> str:
     return "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def _model(device: str):
+def load_model(device: str):
     """kNN-VC ni torch.hub orqali bir marta yuklab, keyin qayta ishlatish."""
     global _MODEL
     if _MODEL is None:
@@ -147,7 +147,7 @@ def convert_voice(
     import torchaudio
 
     device = device or resolve_device()
-    model = _model(device)
+    model = load_model(device)
 
     started = time.monotonic()
     print(f"  Namuna: {reference_path.name} | manba: {source_path.name} | topk={topk}")
