@@ -171,8 +171,13 @@ def mux(video_path: Path, background_audio: Path, output_path: Path) -> Path:
     return output_path
 
 
-def run_demucs(audio_path: Path, work_dir: Path, model: str) -> Path:
-    """`demucs --two-stems=vocals` ni ishga tushirib, nutqsiz faylni topish."""
+def run_demucs(audio_path: Path, work_dir: Path, model: str, stem: str = "no_vocals") -> Path:
+    """`demucs --two-stems=vocals` ni ishga tushirib, kerakli oqimni topish.
+
+    Demucs bir yo'la ikkita fayl yasaydi: `vocals` (nutq) va `no_vocals` (fon).
+    `stem` argumenti shulardan qaysi biri qaytarilishini belgilaydi —
+    `utils/clean_audio.py` teskarisini, ya'ni `vocals` ni oladi.
+    """
     device = resolve_device()
     print(f"  Demucs: {model} | Qurilma: {device}")
     print("  Nutq fondan ajratilmoqda (CPU da bu uzoq davom etadi)...")
@@ -190,7 +195,7 @@ def run_demucs(audio_path: Path, work_dir: Path, model: str) -> Path:
     if process.returncode != 0:
         fail("demucs xatolik bilan tugadi. O'rnatilganini tekshiring: pip install demucs")
 
-    matches = sorted(work_dir.glob("**/no_vocals.*"))
+    matches = sorted(work_dir.glob(f"**/{stem}.*"))
     if not matches:
         fail(f"demucs natijasi topilmadi: {work_dir}")
     return matches[0]

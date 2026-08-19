@@ -1,4 +1,4 @@
-"""5-bosqich: tarjima qilingan .srt dagi matnlarni TTS uchun normalize qilish.
+r"""5-bosqich: tarjima qilingan .srt dagi matnlarni TTS uchun normalize qilish.
 
 Ikki amal SHU TARTIBDA bajariladi:
 
@@ -28,19 +28,30 @@ JSON fayl ko'rinishi (namuna: terms.example.json):
       "kubernetes": "kubernites"
     }
 
-ALMASHTIRISH QOIDASI: atama faqat IKKI TOMONIDA HAM BO'SHLIQ bo'lgandagina
-almashtiriladi (matn boshi va oxiri ham bo'shliq deb qaraladi). Boshqa hech qanday
-holatda tegilmaydi:
+ALMASHTIRISH QOIDASI ikki chegaradan iborat:
 
-    "docker run"      -> almashadi
-    "docker."         -> TEGILMAYDI (o'ngida nuqta)
-    "docker'ni"       -> TEGILMAYDI (o'ngida apostrof)
-    "dockerfile"      -> TEGILMAYDI
+    CHAP tomonda — faqat BO'SHLIQ (matn boshi ham bo'shliq deb qaraladi).
+    O'NG tomonda — bo'shliq YOKI quyidagi belgilardan biri:  .  ,  /  \  '  :
 
-Ya'ni JSON dagi kalit matndagi so'zning AYNAN o'zi bo'lishi kerak. Nuqta/vergul
-oldidagi yoki qo'shimchali shakllarni ham almashtirmoqchi bo'lsangiz, o'sha
-shakllarni ("docker'ni", "docker.") alohida kalit qilib qo'shing.
-Katta-kichik harfga qaralmaydi.
+Shuning uchun:
+
+    "docker run"       -> almashadi
+    "docker."          -> almashadi -> "do'ker."
+    "docker,"          -> almashadi -> "do'ker,"
+    "docker'ni"        -> almashadi -> "do'ker'ni"
+    "docker/compose"   -> almashadi -> "do'ker/compose"
+    "dockerfile"       -> TEGILMAYDI (o'ngida harf turibdi)
+    "mydocker"         -> TEGILMAYDI (chapida harf turibdi)
+
+Belgining o'zi joyida qoladi — almashtirish faqat atamaning ustida bajariladi.
+Katta-kichik harfga qaralmaydi: "application", "Application" va "APPLICATION"
+uchalasi ham bir xil almashadi (natija esa JSON dagi qiymat qanday yozilgan
+bo'lsa, o'shanday chiqadi).
+
+DIQQAT: o'ng chegaraga apostrof kirgani uchun QISQA kalitlar endi o'zbekcha
+so'zlarni buzishi mumkin — masalan lug'atda "to" kaliti bo'lsa, "to'rtta" so'zi
+"tu'rtta" bo'lib ketadi. Ikki-uch harfli kalitlarni full_terms.json dan olib
+tashlagan ma'qul.
 """
 
 from __future__ import annotations
@@ -63,6 +74,11 @@ NAVOIY_DIR = Path(os.environ.get("NAVOIY_DIR", ROOT / "navoiy-tts"))
 # `infer` — sonlar/sanalar/vaqtni so'zga aylantiradi (TTS uchun aynan shu kerak).
 # `train` — matnni deyarli o'zgarishsiz qoldiradi.
 NORMALIZE_MODE = "infer"
+
+# Atamadan KEYIN kelishi mumkin bo'lgan belgilar. Bulardan biri turgan bo'lsa,
+# atama baribir almashtiriladi, belgining o'zi esa joyida qoladi:
+#     "application," -> "aplikeyshn,"      "application'ning" -> "aplikeyshn'ning"
+TRAILING_CHARS = ".,/\\':"
 
 
 def normalize_srt(
@@ -179,18 +195,26 @@ def load_replacements(path: str | Path | None) -> dict[str, str]:
 
 
 def build_pattern(replacements: dict[str, str]) -> re.Pattern[str] | None:
-    """Atamalarni FAQAT ikki tomonida bo'shliq bo'lgan holda topadigan regex yasash.
+    """Atamalarni chegaralari bo'yicha topadigan regex yasash.
 
-    `(?<= )` va `(?= )` — bo'shliqni "iste'mol qilmaydigan" tekshiruvlar, shuning
-    uchun yonma-yon turgan ikkita atama ham (`docker run`) ikkalasi almashadi.
+    Chapida bo'shliq, o'ngida bo'shliq yoki `TRAILING_CHARS` dagi belgilardan biri
+    bo'lishi kerak. Ikkalasi ham lookaround — belgini "iste'mol qilmaydi", shuning
+    uchun yonma-yon turgan ikkita atama ham (`docker run`) ikkalasi almashadi va
+    o'ngdagi tinish belgisi natijada joyida qoladi.
     """
     if not replacements:
         return None
     # ENG UZUNIDAN boshlab tartiblaymiz — regex alternatsiyasida Python birinchi
     # mos kelgan variantni oladi, eng uzunini emas. Aks holda "docker compose"
-    # o'rniga faqat "docker" almashib, qolgan qismi tegilmay qolardi.
+    # o'rniga faqat "docker" almashib, qolgan qismi tegilmay qolardi. Shu tartib
+    # tufayli lug'atda "docker'ni" kabi tayyor shakl bo'lsa, u "docker" dan
+    # oldinroq sinaladi va o'zining qiymati bilan almashadi.
     terms = sorted(replacements, key=len, reverse=True)
-    return re.compile(r"(?<= )(?:" + "|".join(re.escape(term) for term in terms) + r")(?= )", re.IGNORECASE)
+    trailing = "[" + re.escape(" " + TRAILING_CHARS) + "]"
+    return re.compile(
+        r"(?<= )(?:" + "|".join(re.escape(term) for term in terms) + r")(?=" + trailing + r")",
+        re.IGNORECASE,
+    )
 
 
 def replace_terms(text: str, pattern: re.Pattern[str] | None, replacements: dict[str, str]) -> str:
