@@ -31,7 +31,9 @@ JSON fayl ko'rinishi (namuna: terms.example.json):
 ALMASHTIRISH QOIDASI ikki chegaradan iborat:
 
     CHAP tomonda — faqat BO'SHLIQ (matn boshi ham bo'shliq deb qaraladi).
-    O'NG tomonda — bo'shliq YOKI quyidagi belgilardan biri:  .  ,  /  \  '  :
+    O'NG tomonda — bo'shliq YOKI quyidagi belgilardan biri:
+
+        .   ,   :   ;   '   "   `   /   \   )
 
 Shuning uchun:
 
@@ -40,6 +42,7 @@ Shuning uchun:
     "docker,"          -> almashadi -> "do'ker,"
     "docker'ni"        -> almashadi -> "do'ker'ni"
     "docker/compose"   -> almashadi -> "do'ker/compose"
+    "docker-compose"   -> TEGILMAYDI (defis ro'yxatga kiritilmagan)
     "dockerfile"       -> TEGILMAYDI (o'ngida harf turibdi)
     "mydocker"         -> TEGILMAYDI (chapida harf turibdi)
 
@@ -78,7 +81,15 @@ NORMALIZE_MODE = "infer"
 # Atamadan KEYIN kelishi mumkin bo'lgan belgilar. Bulardan biri turgan bo'lsa,
 # atama baribir almashtiriladi, belgining o'zi esa joyida qoladi:
 #     "application," -> "aplikeyshn,"      "application'ning" -> "aplikeyshn'ning"
-TRAILING_CHARS = ".,/\\':"
+#
+# Ro'yxat taxmin emas, real matndan olingan: `utils/collect_next_chars.py`
+# atamalardan keyin qanday belgilar uchrashini sanab beradi.
+#     .  ,  :  ;  '  "  `  /  \  )
+#
+# Defis (-) ataylab kiritilmagan: "docker-php-ext-install" kabi butun nomlarni
+# bo'lakka bo'lib yuborardi — boshi almashib, qolgani inglizcha holicha qolardi.
+# Bunday nomlarni to'liq holda full_terms.json ga kalit qilib qo'shish kerak.
+TRAILING_CHARS = ".,:;'\"`/\\)"
 
 
 def normalize_srt(
