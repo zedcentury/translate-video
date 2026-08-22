@@ -37,7 +37,7 @@ from steps.merge_audios import OUTPUT_SUFFIX as RESULT_SUFFIX  # noqa: E402
 from steps.merge_audios import merge_audios  # noqa: E402
 from steps.normalize_srt import normalize_srt  # noqa: E402
 from steps.remove_audio import remove_audio  # noqa: E402
-from steps.translate_srt import translate_srt  # noqa: E402
+from steps.translate_srt import DEFAULT_MODE, translate_srt  # noqa: E402
 from utils.common import ask_path, fail, format_duration  # noqa: E402
 
 SRC_LANGUAGE = "en"
@@ -84,7 +84,12 @@ def main() -> None:
 
     print(f"\n[4/7] .srt {SRC_LANGUAGE} -> {DST_LANGUAGE} tarjima qilinmoqda...")
     translated_srt_path = translate_srt(
-        srt_path, translated_srt_path, src_language=SRC_LANGUAGE, dst_language=DST_LANGUAGE
+        srt_path,
+        translated_srt_path,
+        src_language=SRC_LANGUAGE,
+        dst_language=DST_LANGUAGE,
+        # Rejim aniq berilmasa, quvur o'rtasida savol berilib qolardi.
+        mode=DEFAULT_MODE,
     )
     print(f"  Tayyor: {translated_srt_path}")
 

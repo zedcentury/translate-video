@@ -38,7 +38,9 @@ from steps.translate_srt import (  # noqa: E402
     DEFAULT_DST_LANGUAGE,
     DEFAULT_SRC_LANGUAGE,
     EFFORT,
+    MODE_LABELS,
     MODEL,
+    ask_mode,
     translate_srt_detailed,
 )
 from utils.common import ask_path, ask_text, fail, format_duration  # noqa: E402
@@ -165,6 +167,8 @@ def main() -> None:
     start = ask_start()
     end = ask_end(start)
     src_language, dst_language = ask_languages()
+    # Rejim bir marta so'raladi va barcha fayllarga bir xil qo'llanadi.
+    mode = ask_mode()
 
     jobs = collect_jobs(root, start, end)
     if not jobs:
@@ -174,6 +178,7 @@ def main() -> None:
     print("\n" + "-" * 70)
     print(f" {len(jobs)} ta fayl topildi: {jobs[0].name} ... {jobs[-1].name}")
     print(f" Yo'nalish: {src_language} -> {dst_language} | Oraliq: {oraliq}")
+    print(f" Rejim: {mode} — {MODE_LABELS[mode]}")
     print(f" Model: {MODEL} (effort={EFFORT})")
     print("-" * 70)
 
@@ -200,6 +205,7 @@ def main() -> None:
                 dst_language=dst_language,
                 # Tayyor tarjima qayta hisoblanmaydi — batch rejimida savol berilmaydi.
                 redo=False,
+                mode=mode,
             )
         except KeyboardInterrupt:
             raise
